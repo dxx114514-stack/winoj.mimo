@@ -9,6 +9,13 @@ echo.
 
 cd /d "%~dp0"
 
+:: ========== 预留端口 ==========
+echo [..] 预留端口 3000...
+net stop winnat >nul 2>&1
+netsh int ipv4 add excludedportrange protocol=tcp startport=3000 numberofports=1 store=persistent >nul 2>&1
+net start winnat >nul 2>&1
+echo [OK] 端口 3000 已预留
+
 :: ========== 检查 Node.js ==========
 where node >nul 2>&1
 if %errorlevel% neq 0 (
@@ -19,6 +26,11 @@ if %errorlevel% neq 0 (
 )
 for /f "tokens=*" %%i in ('node -v') do set NODE_VER=%%i
 echo [OK] Node.js %NODE_VER%
+
+:: ========== 检查 Git ==========
+where git >nul 2>&1
+set HAS_GIT=0
+if %errorlevel% equ 0 set HAS_GIT=1
 
 :: ========== 安装 Node.js 依赖 ==========
 if not exist "backend\node_modules" (
