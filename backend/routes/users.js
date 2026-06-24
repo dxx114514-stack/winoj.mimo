@@ -1,0 +1,208 @@
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const db = require('../database/db');
+const { requireAuth, requireRole, getOnlineUsers, removeOnlineUser } = require('../middleware/auth');
+
+const router = express.Router();
+
+router.get('/online', requireAuth, requireRole('admin'), (req, res) => {
+  const users = getOnlineUsers(5 * 60 * 1000);
+  res.json({ total: users.length, users });
+});
+
+router.get('/me', requireAuth, (req, res) => {
+  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, provider, rating, created_at FROM users WHERE id = ?').get(req.user.id);
+  res.json(user);
+});
+
+router.put('/me', requireAuth, (req, res) => {
+  const { nickname, signature, bio, provider } = req.body;
+  const updates = [];
+  const values = [];
+  if (nickname !== undefined) { updates.push('nickname = ?'); values.push(nickname); }
+  if (signature !== undefined) { updates.push('signature = ?'); values.push(signature.slice(0, 1000)); }
+  if (bio !== undefined) { updates.push('bio = ?'); values.push(bio); }
+  if (provider !== undefined && req.user.role === 'su') { updates.push('provider = ?'); values.push(provider); }
+  if (updates.length === 0) {
+    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'No fields to update.' });
+  }
+  updates.push("updated_at = datetime('now')");
+  values.push(req.user.id);
+  db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, provider, rating FROM users WHERE id = ?').get(req.user.id);
+  res.json(user);
+});
+
+router.put('/:id/provider', requireAuth, requireRole('su'), (req, res) => {
+  const { provider } = req.body;
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!user) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
+  }
+  db.prepare('UPDATE users SET provider = ?, updated_at = datetime(\'now\') WHERE id = ?').run(provider || '', req.params.id);
+  res.json({ message: 'Provider updated.' });
+});
+
+router.put('/:id/rating', requireAuth, requireRole('su'), (req, res) => {
+  const { rating } = req.body;
+  if (typeof rating !== 'number') {
+    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'rating must be a number.' });
+  }
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!user) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
+  }
+  db.prepare('UPDATE users SET rating = ?, updated_at = datetime(\'now\') WHERE id = ?').run(Math.round(rating), req.params.id);
+  res.json({ message: 'Rating updated.', rating: Math.round(rating) });
+});
+
+router.get('/', requireAuth, requireRole('admin'), (req, res) => {
+  const { page = 1, limit = 50, search = '', role = '' } = req.query;
+  const offset = (parseInt(page) - 1) * parseInt(limit);
+  let where = 'WHERE 1=1';
+  const params = [];
+  if (search) {
+    where += ' AND (username LIKE ? OR nickname LIKE ?)';
+    params.push(`%${search}%`, `%${search}%`);
+  }
+  if (role) {
+    where += ' AND role = ?';
+    params.push(role);
+  }
+  const total = db.prepare(`SELECT COUNT(*) as c FROM users ${where}`).get(...params).c;
+  const users = db.prepare(`SELECT id, username, nickname, role, banned, rating, provider, created_at FROM users ${where} ORDER BY id LIMIT ? OFFSET ?`).all(...params, parseInt(limit), offset);
+  res.json({ total, page: parseInt(page), limit: parseInt(limit), users });
+});
+
+router.get('/:id', requireAuth, requireRole('admin'), (req, res) => {
+  const user = db.prepare('SELECT id, username, nickname, role, banned, created_at, updated_at FROM users WHERE id = ?').get(req.params.id);
+  if (!user) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
+  }
+  res.json(user);
+});
+
+router.put('/:id/role', requireAuth, requireRole('su'), (req, res) => {
+  const { role } = req.body;
+  const validRoles = ['user', 'teacher', 'admin', 'su'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'Invalid role.' });
+  }
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!user) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
+  }
+  if (user.id === req.user.id) {
+    return res.status(400).json({ code: 2, reason: 'ERR_INVALID_STATE', message: 'Cannot change your own role.' });
+  }
+  const hierarchy = ['user', 'teacher', 'admin', 'su'];
+  if (user.role === 'su' && role !== 'su') {
+    return res.status(403).json({ code: 6, reason: 'ERR_FORBIDDEN', message: 'Cannot demote another super administrator.' });
+  }
+  db.prepare('UPDATE users SET role = ?, updated_at = datetime(\'now\') WHERE id = ?').run(role, req.params.id);
+  res.json({ message: 'Role updated.', user: { id: user.id, username: user.username, role } });
+});
+
+router.post('/:id/ban', requireAuth, requireRole('admin'), (req, res) => {
+  const target = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!target) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
+  }
+  const hierarchy = ['user', 'teacher', 'admin', 'su'];
+  if (hierarchy.indexOf(req.user.role) <= hierarchy.indexOf(target.role)) {
+    return res.status(403).json({ code: 6, reason: 'ERR_FORBIDDEN', message: 'Cannot ban a user with equal or higher privileges.' });
+  }
+  db.prepare('UPDATE users SET banned = 1, updated_at = datetime(\'now\') WHERE id = ?').run(target.id);
+  db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(target.id);
+  removeOnlineUser(target.id);
+  res.json({ message: 'User banned and logged out.' });
+});
+
+router.post('/:id/unban', requireAuth, requireRole('admin'), (req, res) => {
+  const target = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!target) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
+  }
+  db.prepare('UPDATE users SET banned = 0, updated_at = datetime(\'now\') WHERE id = ?').run(target.id);
+  res.json({ message: 'User unbanned.' });
+});
+
+router.post('/:id/force-logout', requireAuth, requireRole('admin'), (req, res) => {
+  const target = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!target) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
+  }
+  const hierarchy = ['user', 'teacher', 'admin', 'su'];
+  if (hierarchy.indexOf(req.user.role) <= hierarchy.indexOf(target.role)) {
+    return res.status(403).json({ code: 6, reason: 'ERR_FORBIDDEN', message: 'Cannot force logout a user with equal or higher privileges.' });
+  }
+  db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(target.id);
+  removeOnlineUser(target.id);
+  res.json({ message: 'User forced to logout.' });
+});
+
+router.post('/:id/reset-password', requireAuth, requireRole('su'), (req, res) => {
+  const { new_password } = req.body;
+  if (!new_password || new_password.length < 6) {
+    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'New password must be at least 6 characters.' });
+  }
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!user) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
+  }
+  const hash = bcrypt.hashSync(new_password, 10);
+  db.prepare('UPDATE users SET password_hash = ?, updated_at = datetime(\'now\') WHERE id = ?').run(hash, req.params.id);
+  db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(user.id);
+  res.json({ message: 'Password reset successfully.' });
+});
+
+router.post('/sudo-login', requireAuth, requireRole('su'), (req, res) => {
+  const { user_id } = req.body;
+  if (!user_id) {
+    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'user_id is required.' });
+  }
+  const target = db.prepare('SELECT * FROM users WHERE id = ?').get(user_id);
+  if (!target) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
+  }
+  const jwt = require('jsonwebtoken');
+  const config = require('../config/config');
+  const token = jwt.sign({ userId: target.id }, config.jwt.accessSecret, { expiresIn: config.jwt.accessExpiry });
+  res.json({ access_token: token, user: { id: target.id, username: target.username, nickname: target.nickname, role: target.role } });
+});
+
+router.post('/', requireAuth, requireRole('su'), (req, res) => {
+  const { username, password, nickname, role } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'Username and password are required.' });
+  }
+  const validRoles = ['user', 'teacher', 'admin', 'su'];
+  if (role && !validRoles.includes(role)) {
+    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'Invalid role.' });
+  }
+  const existing = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
+  if (existing) {
+    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'Username already exists.' });
+  }
+  const hash = bcrypt.hashSync(password, 10);
+  const result = db.prepare('INSERT INTO users (username, password_hash, nickname, role) VALUES (?, ?, ?, ?)').run(username, hash, nickname || username, role || 'user');
+  res.status(201).json({ message: 'User created.', user: { id: result.lastInsertRowid, username, role: role || 'user' } });
+});
+
+router.delete('/:id', requireAuth, requireRole('su'), (req, res) => {
+  const target = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!target) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
+  }
+  if (target.role === 'su') {
+    const suCount = db.prepare("SELECT COUNT(*) as c FROM users WHERE role = 'su'").get().c;
+    if (suCount <= 1) {
+      return res.status(400).json({ code: 2, reason: 'ERR_INVALID_STATE', message: 'Cannot delete the last super administrator.' });
+    }
+  }
+  db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(target.id);
+  db.prepare('DELETE FROM users WHERE id = ?').run(target.id);
+  res.json({ message: 'User deleted.', self: target.id === req.user.id });
+});
+
+module.exports = router;

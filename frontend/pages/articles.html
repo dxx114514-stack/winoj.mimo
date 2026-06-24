@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文章 - WinOJ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/markdown.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div id="nav"></div>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-gray-900">文章</h1>
+      <div class="flex space-x-2" id="articleActions"></div>
+    </div>
+    <div id="articleList" class="space-y-4"></div>
+    <div id="empty" class="hidden text-center py-12 text-gray-400">暂无文章</div>
+  </div>
+  <script>
+    document.getElementById('nav').innerHTML = renderNav('');
+    const user = getUser();
+    const isTeacher = user && ['teacher', 'admin', 'su'].includes(user.role);
+
+    if (isTeacher) {
+      document.getElementById('articleActions').innerHTML = `<a href="/pages/article-edit.html" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700">+ 发布文章</a>`;
+    }
+
+    async function loadArticles() {
+      try {
+        const data = await apiCall('GET', '/articles');
+        const el = document.getElementById('articleList');
+        const empty = document.getElementById('empty');
+        if (data.articles.length === 0) { el.innerHTML = ''; empty.classList.remove('hidden'); return; }
+        empty.classList.add('hidden');
+        el.innerHTML = data.articles.map(a => `
+          <a href="/pages/article.html?id=${a.id}" class="block bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition">
+            <h2 class="text-xl font-bold text-gray-900 mb-2">${escapeHtml(a.title)}</h2>
+            <div class="flex items-center space-x-3 text-sm text-gray-500">
+              <span>${escapeHtml(a.nickname || a.username)}</span>
+              <span>·</span>
+              <span>${new Date(a.created_at).toLocaleDateString()}</span>
+            </div>
+          </a>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+    loadArticles();
+  </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>语言管理 - WinOJ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/api.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div id="nav"></div>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-gray-900">语言管理</h1>
+      <button onclick="showCreateLang()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700">+ 添加语言</button>
+    </div>
+    <div id="createForm" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+      <h3 class="font-semibold mb-3">添加语言</h3>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <input id="lName" placeholder="名称 (如 rust)" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+        <input id="lDisplay" placeholder="显示名称 (如 Rust)" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+        <input id="lExt" placeholder="扩展名 (如 .rs)" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+        <input id="lCompile" placeholder="编译命令（如无可留空）" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+        <input id="lRun" placeholder="运行命令 (如 python &quot;{src}&quot;)" class="col-span-2 px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+      </div>
+      <p class="text-xs text-gray-400 mb-3">命令中可使用 {src}、{exe}、{workdir} 作为占位符。</p>
+      <div class="flex justify-end space-x-3">
+        <button onclick="hideCreateLang()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl">取消</button>
+        <button onclick="createLang()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700">添加</button>
+      </div>
+    </div>
+    <div class="space-y-4" id="langList"></div>
+  </div>
+  <script>
+    document.getElementById('nav').innerHTML = renderNav('languages');
+    function showCreateLang() { document.getElementById('createForm').classList.remove('hidden'); }
+    function hideCreateLang() { document.getElementById('createForm').classList.add('hidden'); }
+
+    async function loadLanguages() {
+      try {
+        const langs = await apiCall('GET', '/languages');
+        document.getElementById('langList').innerHTML = langs.map(l => `
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-semibold text-gray-900">${escapeHtml(l.display_name)}</h3>
+                <p class="text-sm text-gray-500">名称: ${escapeHtml(l.name)} | 扩展名: ${escapeHtml(l.extension)}</p>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="${l.is_enabled ? 'text-green-600' : 'text-red-600'} text-sm">${l.is_enabled ? '已启用' : '已禁用'}</span>
+                <button onclick="toggleLang(${l.id}, ${l.is_enabled})" class="px-3 py-1 text-sm rounded-lg border ${l.is_enabled ? 'border-red-300 text-red-600 hover:bg-red-50' : 'border-green-300 text-green-600 hover:bg-green-50'}">${l.is_enabled ? '禁用' : '启用'}</button>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 gap-2">
+              ${l.compile_cmd ? `<div class="bg-gray-50 rounded-lg p-3"><span class="text-xs text-gray-400">编译:</span><code class="block text-sm text-gray-700 mt-1">${escapeHtml(l.compile_cmd)}</code></div>` : ''}
+              <div class="bg-gray-50 rounded-lg p-3"><span class="text-xs text-gray-400">运行:</span><code class="block text-sm text-gray-700 mt-1">${escapeHtml(l.run_cmd)}</code></div>
+            </div>
+            <div class="mt-3 flex space-x-3">
+              <button onclick="editLang(${l.id})" class="text-sm text-indigo-600 hover:underline">编辑</button>
+              <button onclick="deleteLang(${l.id})" class="text-sm text-red-600 hover:underline">删除</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    async function createLang() {
+      try {
+        await apiCall('POST', '/languages', {
+          name: document.getElementById('lName').value,
+          display_name: document.getElementById('lDisplay').value,
+          extension: document.getElementById('lExt').value,
+          compile_cmd: document.getElementById('lCompile').value,
+          run_cmd: document.getElementById('lRun').value,
+        });
+        hideCreateLang();
+        loadLanguages();
+      } catch (err) { alert(err.message); }
+    }
+
+    async function toggleLang(id, current) {
+      try {
+        await apiCall('PUT', `/languages/${id}`, { is_enabled: !current });
+        loadLanguages();
+      } catch (err) { alert(err.message); }
+    }
+
+    async function deleteLang(id) {
+      if (!confirm('确定删除此语言？')) return;
+      try { await apiCall('DELETE', `/languages/${id}`); loadLanguages(); } catch (err) { alert(err.message); }
+    }
+
+    async function editLang(id) {
+      const compile = prompt('编译命令（如无可留空）：');
+      if (compile === null) return;
+      const run = prompt('运行命令：');
+      if (!run) return;
+      try {
+        await apiCall('PUT', `/languages/${id}`, { compile_cmd: compile, run_cmd: run });
+        loadLanguages();
+      } catch (err) { alert(err.message); }
+    }
+
+    loadLanguages();
+  </script>
+</body>
+</html>

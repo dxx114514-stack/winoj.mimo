@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>提交详情 - WinOJ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/api.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <style>.CodeMirror { height: auto; max-height: 400px; font-size: 13px; border-radius: 0.5rem; text-align: left; }
+  .CodeMirror-code { text-align: left !important; }</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div id="nav"></div>
+  <div class="max-w-5xl mx-auto px-4 py-8">
+    <div id="content" class="text-center py-12 text-gray-400">加载中...</div>
+  </div>
+  <script>
+    document.getElementById('nav').innerHTML = renderNav('submissions');
+    const params = new URLSearchParams(window.location.search);
+    const sid = params.get('id');
+    const currentUser = getUser();
+    const isTeacher = currentUser && ['teacher', 'admin', 'su'].includes(currentUser.role);
+
+    function errorDescription(status, stderr, exitCode, timeUsed, timeLimit) {
+      const descs = {
+        compile_error: '代码编译失败，请检查语法错误。编译器输出见下方。',
+        runtime_error: `程序运行时崩溃（退出码: ${exitCode}）。可能是数组越界、空指针、除零等错误。`,
+        time_limit_exceeded: `程序运行超过时限（${timeLimit || '?'}ms）。请优化算法复杂度或减少不必要的计算。`,
+        memory_limit_exceeded: '程序使用内存超过限制。请减少内存分配或使用更高效的数据结构。',
+        wrong_answer: '程序输出与标准答案不一致。请仔细检查逻辑和边界情况。',
+        accepted: '程序正确通过了所有测试点。',
+        system_error: '评测系统内部错误，请联系管理员。',
+        pending: '等待评测中...',
+        running: '正在评测中...',
+        judging: '正在评测中...',
+        compiling: '正在编译中...',
+        pending_rejudge: '等待重测中...'
+      };
+      return descs[status] || `状态: ${status}`;
+    }
+
+    async function loadSubmission() {
+      if (!sid) { document.getElementById('content').innerHTML = '<p class="text-red-500">未指定提交 ID</p>'; return; }
+      try {
+        const s = await apiCall('GET', `/submissions/${sid}`);
+        document.title = `提交 #${s.id} - WinOJ`;
+        const langModes = { c: 'text/x-csrc', cpp: 'text/x-c++src', python3: 'text/x-python', java: 'text/x-java', javascript: 'text/javascript' };
+
+        const statusDesc = errorDescription(s.status, s.compile_output, null, s.time_used, s.time_limit);
+
+        let detailsHtml = '';
+        if (s.details && s.details.length > 0) {
+          detailsHtml = `
+            <div class="mt-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">测试点详情</h3>
+              <div class="space-y-2">
+                ${s.details.map((d, i) => {
+                  let detailDesc = '';
+                  if (d.status === 'runtime_error') detailDesc = `<div class="text-xs text-red-500 mt-1 ml-6">退出码: ${d.exit_code}${d.stderr ? ' — ' + escapeHtml(d.stderr.slice(0, 200)) : ''}</div>`;
+                  else if (d.status === 'time_limit_exceeded') detailDesc = `<div class="text-xs text-orange-500 mt-1 ml-6">耗时 ${d.time_used}ms 超出时限</div>`;
+                  else if (d.status === 'wrong_answer') detailDesc = `<div class="text-xs text-red-400 mt-1 ml-6">输出与期望不一致${d.stdout ? '（收到: ' + escapeHtml(d.stdout.slice(0, 100)) + '）' : ''}</div>`;
+                  else if (d.status === 'compile_error') detailDesc = `<div class="text-xs text-yellow-600 mt-1 ml-6 whitespace-pre-wrap">${escapeHtml((d.stderr || '').slice(0, 300))}</div>`;
+                  return `
+                    <div class="p-3 bg-gray-50 rounded-xl">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                          <span class="text-sm font-medium text-gray-700">测试点 #${i+1}</span>
+                          <span class="px-2 py-0.5 text-xs rounded-full ${statusColor(d.status)}">${statusText(d.status)}</span>
+                        </div>
+                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                          <span>得分: ${d.score}</span>
+                          <span>耗时: ${d.time_used}ms</span>
+                          <span>内存: ${d.memory_used}KB</span>
+                        </div>
+                      </div>
+                      ${detailDesc}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }
+
+        document.getElementById('content').innerHTML = `
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h1 class="text-2xl font-bold text-gray-900">提交 #${s.id}</h1>
+                <div class="flex items-center space-x-3 mt-2 text-sm text-gray-500">
+                  <span>用户: ${escapeHtml(s.username||'-')}</span>
+                  <span>|</span>
+                  <a href="/pages/problem.html?id=${s.problem_id}" class="text-indigo-600 hover:text-indigo-800">${escapeHtml(s.problem_title||'未知')}</a>
+                  <span>|</span>
+                  <span>${s.language}</span>
+                  <span>|</span>
+                  <span>${new Date(s.created_at).toLocaleString()}</span>
+                </div>
+              </div>
+              <div class="flex items-center space-x-3">
+                <span class="px-4 py-2 text-sm rounded-full font-semibold ${statusColor(s.status)}">${statusText(s.status)}</span>
+                ${isTeacher ? `<button onclick="rejudge(${s.id})" class="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 font-semibold">重测</button>` : ''}
+              </div>
+            </div>
+
+            <div class="p-3 mb-4 rounded-xl text-sm ${s.status === 'accepted' ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-600'}">
+              ${statusDesc}
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 mb-6">
+              <div class="bg-gray-50 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-gray-900">${s.score}</div><div class="text-sm text-gray-500">得分</div></div>
+              <div class="bg-gray-50 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-gray-900">${s.time_used}ms</div><div class="text-sm text-gray-500">耗时</div></div>
+              <div class="bg-gray-50 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-gray-900">${s.memory_used}KB</div><div class="text-sm text-gray-500">内存</div></div>
+            </div>
+
+            ${s.source_code && s.source_code !== '[HIDDEN]' ? `
+            <div class="mb-4">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">源代码</h3>
+              <textarea id="codeArea">${escapeHtml(s.source_code)}</textarea>
+            </div>
+            ` : ''}
+
+            ${s.compile_output ? `
+            <div class="mb-4">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">编译输出</h3>
+              <pre class="bg-red-50 text-red-700 p-4 rounded-xl text-sm overflow-x-auto whitespace-pre-wrap">${escapeHtml(s.compile_output)}</pre>
+            </div>
+            ` : ''}
+
+            ${detailsHtml}
+          </div>
+        `;
+        if (s.source_code && s.source_code !== '[HIDDEN]') {
+          const ta = document.getElementById('codeArea');
+          if (ta) {
+            CodeMirror.fromTextArea(ta, { lineNumbers: true, mode: langModes[s.language]||'text/plain', readOnly: true, theme: 'default' });
+          }
+        }
+      } catch (err) {
+        document.getElementById('content').innerHTML = `<p class="text-red-500 text-center">${err.message || '加载提交详情失败'}</p>`;
+      }
+    }
+
+    async function rejudge(id) {
+      if (!confirm('确定重新评测此提交？')) return;
+      try {
+        await apiCall('POST', `/submissions/${id}/rejudge`);
+        alert('已加入重测队列');
+        setTimeout(() => loadSubmission(), 2000);
+      } catch (err) { alert(err.message); }
+    }
+
+    loadSubmission();
+  </script>
+</body>
+</html>

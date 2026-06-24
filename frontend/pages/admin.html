@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理面板 - WinOJ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/api.js"></script>
+  <style>
+    .CodeMirror { height: 200px; border-radius: 0.5rem; font-size: 13px; }
+    textarea.script-editor { font-family: monospace; font-size: 13px; tab-size: 4; }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div id="nav"></div>
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">管理面板</h1>
+    <div class="flex space-x-2 mb-6">
+      <button onclick="showTab('problems')" id="tab-problems" class="px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white">题目管理</button>
+      <button onclick="showTab('users')" id="tab-users" class="px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">用户管理</button>
+      <button onclick="showTab('online')" id="tab-online" class="px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">在线用户</button>
+      <button onclick="showTab('articles')" id="tab-articles" class="px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">文章管理</button>
+      <button onclick="showTab('files')" id="tab-files" class="px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">文件管理</button>
+      <button onclick="showTab('contests')" id="tab-contests" class="px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">比赛管理</button>
+    </div>
+
+    <div id="panel-problems">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">题目管理</h2>
+        <button onclick="showCreateProblem()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700">+ 新建题目</button>
+      </div>
+
+      <div id="createProblemForm" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
+        <h3 class="font-semibold mb-3" id="problemFormTitle">新建题目</h3>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <input id="pTitle" placeholder="题目标题" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <select id="pType" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="traditional">传统题</option>
+            <option value="interactive">交互题</option>
+            <option value="communication">通信题</option>
+            <option value="submit_answer">提交答案</option>
+          </select>
+          <input id="pTimeLimit" type="number" value="1000" placeholder="时限 (ms)" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input id="pMemLimit" type="number" value="256" placeholder="内存限制 (MB)" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <select id="pCompare" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="text_strict">严格比较</option>
+            <option value="text_relaxed">宽松比较</option>
+            <option value="real_number">浮点比较</option>
+            <option value="spj">Special Judge</option>
+          </select>
+          <select id="pSubtask" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="simple">简单模式</option>
+            <option value="advanced">分组模式</option>
+          </select>
+        </div>
+        <textarea id="pDesc" rows="3" placeholder="题目描述（支持 Markdown 和 KaTeX 公式）" class="w-full px-3 py-2 border border-gray-300 rounded-xl mb-3 focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
+        <textarea id="pInput" rows="2" placeholder="输入格式" class="w-full px-3 py-2 border border-gray-300 rounded-xl mb-3 focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
+        <textarea id="pOutput" rows="2" placeholder="输出格式" class="w-full px-3 py-2 border border-gray-300 rounded-xl mb-3 focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
+        <div class="flex justify-end space-x-3">
+          <button onclick="hideCreateProblem()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl">取消</button>
+          <button onclick="saveProblem()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700" id="problemSaveBtn">创建</button>
+        </div>
+      </div>
+
+      <div id="testManager" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold" id="testManagerTitle">测试点管理</h3>
+          <button onclick="hideTestManager()" class="text-sm text-gray-500 hover:text-gray-700">关闭</button>
+        </div>
+
+        <div class="mb-4 p-3 bg-blue-50 rounded-xl text-sm text-blue-700">
+          <strong>变量说明:</strong> @statusX (AC=1,WA=2,TLE=3,MLE=4), @scoreX, @timeX, @memoryX, @total_score, @final_status, @final_time, @final_memory
+        </div>
+
+        <div id="groupsSection" class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-semibold text-gray-700">测试分组 (Subtask)</h4>
+            <button onclick="showGroupEditor()" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200">+ 添加分组</button>
+          </div>
+          <div id="groupsList" class="space-y-2"></div>
+        </div>
+
+        <div id="groupEditor" class="hidden mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <h4 class="text-sm font-semibold mb-3" id="groupEditorTitle">添加分组</h4>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="text-xs text-gray-500">Subtask ID</label>
+              <input id="gSubtaskId" type="text" placeholder="如 st1" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">满分</label>
+              <input id="gScore" type="number" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">聚合方式</label>
+              <select id="gAggregator" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                <option value="sum">求和 (sum)</option>
+                <option value="min">取最小 (min)</option>
+                <option value="max">取最大 (max)</option>
+                <option value="min_score">最低分 (min_score)</option>
+                <option value="max_time">最长时间 (max_time)</option>
+                <option value="custom">自定义 (custom)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">依赖分组 ID (逗号分隔)</label>
+              <input id="gDependency" type="text" placeholder="如 1,2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="text-xs text-gray-500">计分脚本 (留空则默认聚合)</label>
+            <textarea id="gScript" rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="if @status1==AC; then&#10;  @total_score = 30;&#10;  @final_status = AC;&#10;  @final_time = @time1;&#10;  @final_memory = @memory1;&#10;else&#10;  @total_score = 0;&#10;  @final_status = UNAC;&#10;fi"></textarea>
+          </div>
+          <div class="flex justify-end space-x-2">
+            <button onclick="hideGroupEditor()" class="px-3 py-1.5 text-gray-600 text-sm hover:bg-gray-200 rounded-lg">取消</button>
+            <button onclick="saveGroup()" class="px-4 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700" id="groupSaveBtn">保存</button>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-semibold text-gray-700">题目级计分脚本</h4>
+            <button onclick="toggleProblemScript()" class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200" id="probScriptBtn">展开</button>
+          </div>
+          <div id="problemScriptWrap" class="hidden">
+            <textarea id="problemScript" class="w-full px-3 py-2 border border-gray-300 rounded-xl font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none" rows="6" placeholder="if @status1==AC; then&#10;  @total_score = 100;&#10;  @final_status = AC;&#10;fi"></textarea>
+            <button onclick="saveProblemScript()" class="mt-2 px-3 py-1 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">保存脚本</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-semibold text-gray-700">测试点列表</h4>
+            <div class="flex space-x-2">
+              <button onclick="addTestCase()" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200">+ 添加测试点</button>
+              <button onclick="batchAddTestCases()" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">批量添加</button>
+            </div>
+          </div>
+          <div id="testCasesList" class="space-y-2"></div>
+        </div>
+
+        <div id="tcEditor" class="hidden mt-4 p-4 bg-gray-50 rounded-xl">
+          <h4 class="text-sm font-semibold mb-2" id="tcEditorTitle">编辑测试点</h4>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="text-xs text-gray-500">输入</label>
+              <textarea id="tcInput" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">期望输出</label>
+              <textarea id="tcOutput" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-3 mb-3">
+            <div>
+              <label class="text-xs text-gray-500">分数</label>
+              <input id="tcScore" type="number" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">所属分组</label>
+              <select id="tcGroup" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                <option value="">无分组</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button onclick="saveTestCase()" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">保存</button>
+              <button onclick="cancelEditTC()" class="ml-2 px-4 py-2 text-gray-600 text-sm hover:bg-gray-100 rounded-lg">取消</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ID</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">标题</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">类型</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">模式</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">测试点</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">公开</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">操作</th>
+            </tr>
+          </thead>
+          <tbody id="adminProblems" class="divide-y divide-gray-100"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="panel-users" class="hidden">
+      <h2 class="text-lg font-semibold mb-4">用户管理</h2>
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ID</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">用户名</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">昵称</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">角色</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Rating</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">提供者</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">状态</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">操作</th>
+            </tr>
+          </thead>
+          <tbody id="adminUsers" class="divide-y divide-gray-100"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="panel-online" class="hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold">在线用户</h2>
+        <button onclick="loadOnlineUsers()" class="px-3 py-1.5 text-sm bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200">刷新</button>
+      </div>
+      <div id="onlineList" class="space-y-3"></div>
+    </div>
+
+    <div id="panel-contests" class="hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">比赛管理</h2>
+        <button onclick="showCreateContest()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700">+ 新建比赛</button>
+      </div>
+      <div id="createContestForm" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <input id="cTitle" placeholder="比赛标题" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input id="cStart" type="datetime-local" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input id="cEnd" type="datetime-local" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div class="flex justify-end space-x-3">
+          <button onclick="hideCreateContest()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl">取消</button>
+          <button onclick="createContest()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700">创建</button>
+        </div>
+      </div>
+
+      <div id="contestProblemManager" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold" id="contestProblemTitle">管理比赛</h3>
+          <button onclick="hideContestProblemManager()" class="text-sm text-gray-500 hover:text-gray-700">关闭</button>
+        </div>
+
+        <div class="mb-4">
+          <h4 class="text-sm font-semibold text-gray-700 mb-2">邀请用户</h4>
+          <div class="flex space-x-3">
+            <input id="cpUserId" type="number" placeholder="用户 ID" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <button onclick="inviteContestUser()" class="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700">邀请</button>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <h4 class="text-sm font-semibold text-gray-700 mb-2">参赛用户 (<span id="participantCount">0</span>)</h4>
+          <div id="participantList" class="space-y-2 mb-4"></div>
+        </div>
+
+        <div class="mb-4">
+          <h4 class="text-sm font-semibold text-gray-700 mb-2">添加题目</h4>
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="text-xs text-gray-500">题目 ID</label>
+              <input id="cpProblemId" type="number" placeholder="如 1" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">别名（选填）</label>
+              <input id="cpAlias" type="text" placeholder="如 A" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div class="flex items-end">
+              <button onclick="addContestProblem()" class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700">添加题目</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-semibold text-gray-700 mb-2">比赛题目</h4>
+          <div id="contestProblemsList" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ID</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">标题</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">题目数</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">开始</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">结束</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">操作</th>
+            </tr>
+          </thead>
+          <tbody id="adminContests" class="divide-y divide-gray-100"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+    <div id="panel-articles" class="hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">文章管理</h2>
+        <a href="/pages/article-edit.html" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700">+ 发布文章</a>
+      </div>
+      <div id="adminArticles" class="space-y-3"></div>
+    </div>
+
+    <div id="panel-files" class="hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">文件管理</h2>
+        <a href="/pages/upload.html" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700">上传文件</a>
+      </div>
+      <div id="adminFiles" class="space-y-3"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('nav').innerHTML = renderNav('admin');
+    let currentProblemId = null;
+    let currentGroups = [];
+    let currentTestCases = [];
+    let editingTcId = null;
+
+    function showTab(tab) {
+      ['problems','users','online','articles','files','contests'].forEach(t => {
+        document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== tab);
+        const btn = document.getElementById(`tab-${t}`);
+        btn.className = t === tab ? 'px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white' : 'px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-300 text-gray-600 hover:bg-gray-50';
+      });
+      if (tab === 'users') loadUsers();
+      if (tab === 'online') loadOnlineUsers();
+      if (tab === 'articles') loadAdminArticles();
+      if (tab === 'files') loadAdminFiles();
+      if (tab === 'contests') loadContests();
+      if (tab === 'problems') loadAdminProblems();
+    }
+    function showCreateProblem() { document.getElementById('createProblemForm').classList.remove('hidden'); }
+    function hideCreateProblem() { document.getElementById('createProblemForm').classList.add('hidden'); }
+    function showCreateContest() { document.getElementById('createContestForm').classList.remove('hidden'); }
+    function hideCreateContest() { document.getElementById('createContestForm').classList.add('hidden'); }
+
+    async function loadAdminProblems() {
+      try {
+        const data = await apiCall('GET', '/problems?limit=100');
+        document.getElementById('adminProblems').innerHTML = data.problems.map(p => `
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 text-sm">${p.id}</td>
+            <td class="px-4 py-3 text-sm font-medium">${escapeHtml(p.title)}</td>
+            <td class="px-4 py-3 text-center text-sm">${p.problem_type === 'traditional' ? '传统题' : p.problem_type}</td>
+            <td class="px-4 py-3 text-center text-sm">${p.subtask_mode === 'advanced' ? '分组' : '简单'}</td>
+            <td class="px-4 py-3 text-center text-sm" id="tc-count-${p.id}">-</td>
+            <td class="px-4 py-3 text-center">${p.is_public ? '<span class="text-green-600">是</span>' : '<span class="text-red-600">否</span>'}</td>
+            <td class="px-4 py-3 text-center">
+              <a href="/pages/problem.html?id=${p.id}" class="text-indigo-600 text-sm hover:underline mr-2">查看</a>
+              <button onclick="editProblem(${p.id})" class="text-blue-600 text-sm hover:underline mr-2">编辑</button>
+              <button onclick="openTestManager(${p.id}, '${escapeHtml(p.title)}')" class="text-green-600 text-sm hover:underline mr-2">测试点</button>
+              <button onclick="deleteProblem(${p.id})" class="text-red-600 text-sm hover:underline">删除</button>
+            </td>
+          </tr>
+        `).join('');
+        for (const p of data.problems) {
+          try {
+            const tcs = await apiCall('GET', `/problems/${p.id}/testdata`);
+            const el = document.getElementById(`tc-count-${p.id}`);
+            if (el) el.textContent = tcs.length;
+          } catch {}
+        }
+      } catch (err) { console.error(err); }
+    }
+
+    let editingProblemId = null;
+
+    function showCreateProblem() {
+      editingProblemId = null;
+      document.getElementById('problemFormTitle').textContent = '新建题目';
+      document.getElementById('problemSaveBtn').textContent = '创建';
+      document.getElementById('pTitle').value = '';
+      document.getElementById('pType').value = 'traditional';
+      document.getElementById('pTimeLimit').value = '1000';
+      document.getElementById('pMemLimit').value = '256';
+      document.getElementById('pCompare').value = 'text_strict';
+      document.getElementById('pSubtask').value = 'simple';
+      document.getElementById('pDesc').value = '';
+      document.getElementById('pInput').value = '';
+      document.getElementById('pOutput').value = '';
+      document.getElementById('createProblemForm').classList.remove('hidden');
+    }
+    function hideCreateProblem() { document.getElementById('createProblemForm').classList.add('hidden'); editingProblemId = null; }
+
+    async function editProblem(id) {
+      try {
+        const p = await apiCall('GET', `/problems/${id}`);
+        editingProblemId = id;
+        document.getElementById('problemFormTitle').textContent = `编辑题目 #${id}`;
+        document.getElementById('problemSaveBtn').textContent = '保存';
+        document.getElementById('pTitle').value = p.title || '';
+        document.getElementById('pType').value = p.problem_type || 'traditional';
+        document.getElementById('pTimeLimit').value = p.time_limit || 1000;
+        document.getElementById('pMemLimit').value = p.memory_limit || 256;
+        document.getElementById('pCompare').value = p.compare_mode || 'text_strict';
+        document.getElementById('pSubtask').value = p.subtask_mode || 'simple';
+        document.getElementById('pDesc').value = p.description || '';
+        document.getElementById('pInput').value = p.input_desc || '';
+        document.getElementById('pOutput').value = p.output_desc || '';
+        document.getElementById('createProblemForm').classList.remove('hidden');
+      } catch (err) { alert(err.message); }
+    }
+
+    async function saveProblem() {
+      const data = {
+        title: document.getElementById('pTitle').value,
+        description: document.getElementById('pDesc').value,
+        input_desc: document.getElementById('pInput').value,
+        output_desc: document.getElementById('pOutput').value,
+        problem_type: document.getElementById('pType').value,
+        time_limit: parseInt(document.getElementById('pTimeLimit').value),
+        memory_limit: parseInt(document.getElementById('pMemLimit').value),
+        compare_mode: document.getElementById('pCompare').value,
+        subtask_mode: document.getElementById('pSubtask').value,
+      };
+      try {
+        if (editingProblemId) {
+          await apiCall('PUT', `/problems/${editingProblemId}`, data);
+        } else {
+          await apiCall('POST', '/problems', data);
+        }
+        hideCreateProblem();
+        loadAdminProblems();
+      } catch (err) { alert(err.message || '操作失败'); }
+    }
+
+    async function deleteProblem(id) {
+      if (!confirm('确定删除此题目？')) return;
+      try { await apiCall('DELETE', `/problems/${id}`); loadAdminProblems(); } catch (err) { alert(err.message); }
+    }
+
+    async function deleteUser(uid) {
+      const currentUser = getUser();
+      const msg = uid === currentUser?.id ? '确定删除自己的账户？删除后将立即退出登录！' : '确定删除此用户？';
+      if (!confirm(msg)) return;
+      try {
+        const res = await apiCall('DELETE', `/users/${uid}`);
+        if (res.self) {
+          clearToken();
+          window.location.href = '/pages/index.html';
+          return;
+        }
+        loadUsers();
+      } catch (err) { alert(err.message); }
+    }
+
+    async function sudoLogin(uid, username) {
+      if (!confirm(`免密登录到用户 ${username}？`)) return;
+      try {
+        const res = await apiCall('POST', `/users/sudo-login`, { user_id: uid });
+        setToken(res.access_token);
+        setUser(res.user);
+        window.location.href = '/pages/index.html';
+      } catch (err) { alert(err.message); }
+    }
+
+    async function openTestManager(pid, title) {
+      currentProblemId = pid;
+      document.getElementById('testManager').classList.remove('hidden');
+      document.getElementById('testManagerTitle').textContent = `测试点管理 - #${pid} ${title}`;
+      await loadGroups();
+      await loadTestCases();
+    }
+
+    function hideTestManager() {
+      document.getElementById('testManager').classList.add('hidden');
+      currentProblemId = null;
+    }
+
+    async function loadGroups() {
+      try {
+        currentGroups = await apiCall('GET', `/problems/${currentProblemId}/groups`);
+      } catch { currentGroups = []; }
+      renderGroups();
+    }
+
+    function renderGroups() {
+      const el = document.getElementById('groupsList');
+      if (currentGroups.length === 0) {
+        el.innerHTML = '<div class="text-sm text-gray-400 py-2">无分组（简单模式）</div>';
+        return;
+      }
+      el.innerHTML = currentGroups.map(g => `
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+          <div class="flex items-center space-x-3">
+            <span class="text-sm font-mono text-indigo-600">#${g.id}</span>
+            <span class="text-sm font-medium">${escapeHtml(g.subtask_id)}</span>
+            <span class="text-xs text-gray-500">满分: ${g.score}</span>
+            <span class="text-xs text-gray-500">聚合: ${g.aggregator}</span>
+            ${g.dependency.length > 0 ? `<span class="text-xs text-orange-600">依赖: [${g.dependency.join(', ')}]</span>` : ''}
+            ${g.scoring_script ? '<span class="text-xs text-green-600">有计分脚本</span>' : ''}
+          </div>
+          <div class="flex space-x-2">
+            <button onclick="showGroupEditor(${g.id})" class="text-xs text-indigo-600 hover:underline">编辑</button>
+            <button onclick="deleteGroup(${g.id})" class="text-xs text-red-600 hover:underline">删除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    let editingGroupId = null;
+
+    function showGroupEditor(gid) {
+      editingGroupId = gid || null;
+      const el = document.getElementById('groupEditor');
+      el.classList.remove('hidden');
+      if (gid) {
+        const g = currentGroups.find(x => x.id === gid);
+        if (!g) return;
+        document.getElementById('groupEditorTitle').textContent = `编辑分组 #${gid}`;
+        document.getElementById('gSubtaskId').value = g.subtask_id;
+        document.getElementById('gScore').value = g.score;
+        document.getElementById('gAggregator').value = g.aggregator;
+        document.getElementById('gDependency').value = g.dependency.join(', ');
+        document.getElementById('gScript').value = g.scoring_script || '';
+      } else {
+        document.getElementById('groupEditorTitle').textContent = '添加分组';
+        document.getElementById('gSubtaskId').value = '';
+        document.getElementById('gScore').value = '0';
+        document.getElementById('gAggregator').value = 'sum';
+        document.getElementById('gDependency').value = '';
+        document.getElementById('gScript').value = '';
+      }
+    }
+
+    function hideGroupEditor() {
+      document.getElementById('groupEditor').classList.add('hidden');
+      editingGroupId = null;
+    }
+
+    async function saveGroup() {
+      const subtask_id = document.getElementById('gSubtaskId').value.trim();
+      if (!subtask_id) { alert('请输入 Subtask ID'); return; }
+      const score = parseFloat(document.getElementById('gScore').value) || 0;
+      const aggregator = document.getElementById('gAggregator').value;
+      const depStr = document.getElementById('gDependency').value.trim();
+      const dependency = depStr ? depStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)) : [];
+      const scoring_script = document.getElementById('gScript').value;
+
+      try {
+        if (editingGroupId) {
+          await apiCall('PUT', `/problems/${currentProblemId}/groups/${editingGroupId}`, {
+            subtask_id, score, aggregator, dependency, scoring_script
+          });
+        } else {
+          await apiCall('POST', `/problems/${currentProblemId}/groups`, {
+            subtask_id, score, aggregator, dependency, scoring_script
+          });
+        }
+        hideGroupEditor();
+        await loadGroups();
+      } catch (err) { alert(err.message); }
+    }
+
+    async function deleteGroup(gid) {
+      if (!confirm('确定删除此分组？')) return;
+      try {
+        await apiCall('DELETE', `/problems/${currentProblemId}/groups/${gid}`);
+        await loadGroups();
+        await loadTestCases();
+      } catch (err) { alert(err.message); }
+    }
+
+    function toggleProblemScript() {
+      const wrap = document.getElementById('problemScriptWrap');
+      const btn = document.getElementById('probScriptBtn');
+      wrap.classList.toggle('hidden');
+      btn.textContent = wrap.classList.contains('hidden') ? '展开' : '收起';
+    }
+
+    async function saveProblemScript() {
+      const script = document.getElementById('problemScript').value;
+      try {
+        await apiCall('PUT', `/problems/${currentProblemId}/scoring-script`, { scoring_script: script });
+        alert('计分脚本已保存');
+      } catch (err) { alert(err.message); }
+    }
+
+    async function loadTestCases() {
+      try {
+        currentTestCases = await apiCall('GET', `/problems/${currentProblemId}/testdata`);
+      } catch { currentTestCases = []; }
+      renderTestCases();
+    }
+
+    function renderTestCases() {
+      const el = document.getElementById('testCasesList');
+      if (currentTestCases.length === 0) {
+        el.innerHTML = '<div class="text-sm text-gray-400 py-2">暂无测试点</div>';
+        return;
+      }
+      el.innerHTML = currentTestCases.map((tc, i) => {
+        const group = currentGroups.find(g => g.id === tc.group_id);
+        return `
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <div class="flex items-center space-x-3">
+              <span class="text-sm font-mono text-gray-500">#${tc.id}</span>
+              <span class="text-xs text-gray-400">排序: ${tc.sort_order}</span>
+              <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">分数: ${tc.score}</span>
+              ${group ? `<span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">分组: ${group.subtask_id}</span>` : '<span class="text-xs text-gray-400">无分组</span>'}
+              <span class="text-xs text-gray-400 max-w-[200px] truncate">输入: ${escapeHtml(tc.input_data || tc.input_file || '(空)').slice(0, 30)}</span>
+              <span class="text-xs text-gray-400 max-w-[200px] truncate">输出: ${escapeHtml(tc.output_data || tc.output_file || '(空)').slice(0, 30)}</span>
+            </div>
+            <div class="flex space-x-2">
+              <button onclick="editTestCase(${tc.id})" class="text-xs text-indigo-600 hover:underline">编辑</button>
+              <button onclick="deleteSingleTC(${tc.id})" class="text-xs text-red-600 hover:underline">删除</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      updateGroupSelect();
+    }
+
+    function updateGroupSelect() {
+      const sel = document.getElementById('tcGroup');
+      sel.innerHTML = '<option value="">无分组</option>' +
+        currentGroups.map(g => `<option value="${g.id}">${g.subtask_id} (#${g.id})</option>`).join('');
+    }
+
+    function addTestCase() {
+      editingTcId = null;
+      document.getElementById('tcEditorTitle').textContent = '添加测试点';
+      document.getElementById('tcInput').value = '';
+      document.getElementById('tcOutput').value = '';
+      document.getElementById('tcScore').value = '0';
+      document.getElementById('tcGroup').value = '';
+      document.getElementById('tcEditor').classList.remove('hidden');
+      updateGroupSelect();
+    }
+
+    function editTestCase(tcid) {
+      const tc = currentTestCases.find(x => x.id === tcid);
+      if (!tc) return;
+      editingTcId = tcid;
+      document.getElementById('tcEditorTitle').textContent = `编辑测试点 #${tcid}`;
+      document.getElementById('tcInput').value = tc.input_data || '';
+      document.getElementById('tcOutput').value = tc.output_data || '';
+      document.getElementById('tcScore').value = tc.score;
+      document.getElementById('tcGroup').value = tc.group_id || '';
+      document.getElementById('tcEditor').classList.remove('hidden');
+      updateGroupSelect();
+    }
+
+    function cancelEditTC() {
+      document.getElementById('tcEditor').classList.add('hidden');
+      editingTcId = null;
+    }
+
+    async function saveTestCase() {
+      const input = document.getElementById('tcInput').value;
+      const output = document.getElementById('tcOutput').value;
+      const score = parseFloat(document.getElementById('tcScore').value) || 0;
+      const group_id = document.getElementById('tcGroup').value || null;
+
+      if (editingTcId) {
+        await apiCall('PUT', `/problems/${currentProblemId}/testcases/${editingTcId}`, { input_data: input, output_data: output, score, group_id });
+      } else {
+        await apiCall('POST', `/problems/${currentProblemId}/testcases`, { test_cases: [{ input_data: input, output_data: output, score, group_id }] });
+      }
+      cancelEditTC();
+      await loadTestCases();
+    }
+
+    async function deleteSingleTC(tcid) {
+      if (!confirm('确定删除此测试点？')) return;
+      try {
+        await apiCall('DELETE', `/problems/${currentProblemId}/testcases/${tcid}`);
+        await loadTestCases();
+      } catch (err) { alert(err.message); }
+    }
+
+    function batchAddTestCases() {
+      const data = prompt('批量添加测试点（JSON 数组）：\n\n[{"input_data":"1 2","output_data":"3","score":25,"group_id":1},...]');
+      if (!data) return;
+      try {
+        const arr = JSON.parse(data);
+        apiCall('POST', `/problems/${currentProblemId}/testcases`, { test_cases: arr }).then(r => {
+          alert(r.message);
+          loadTestCases();
+        }).catch(e => alert(e.message));
+      } catch (e) { alert('JSON 格式错误: ' + e.message); }
+    }
+
+    async function loadUsers() {
+      const currentUser = getUser();
+      const isSu = currentUser && currentUser.role === 'su';
+      const hierarchy = ['user', 'teacher', 'admin', 'su'];
+      const myLevel = hierarchy.indexOf(currentUser?.role || '');
+      try {
+        const data = await apiCall('GET', '/users?limit=100');
+        document.getElementById('adminUsers').innerHTML = data.users.map(u => {
+          const targetLevel = hierarchy.indexOf(u.role);
+          const canOperate = u.id !== currentUser.id && myLevel > targetLevel;
+          return `
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 text-sm">${u.id}</td>
+            <td class="px-4 py-3 text-sm font-medium">${escapeHtml(u.username)}</td>
+            <td class="px-4 py-3 text-sm">${escapeHtml(u.nickname)}</td>
+            <td class="px-4 py-3 text-center">
+              ${isSu && u.id !== currentUser.id ? `
+                <select onchange="changeRole(${u.id}, this.value)" class="px-2 py-1 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                  <option value="user" ${u.role==='user'?'selected':''}>用户</option>
+                  <option value="teacher" ${u.role==='teacher'?'selected':''}>教师</option>
+                  <option value="admin" ${u.role==='admin'?'selected':''}>管理员</option>
+                  <option value="su" ${u.role==='su'?'selected':''}>超级管理员</option>
+                </select>
+              ` : roleBadge(u.role)}
+            </td>
+            <td class="px-4 py-3 text-center text-sm">${u.rating || 1500}</td>
+            <td class="px-4 py-3 text-center text-xs">${escapeHtml(u.provider || '-')}</td>
+            <td class="px-4 py-3 text-center">${u.banned ? '<span class="text-red-600 text-sm">已封禁</span>' : '<span class="text-green-600 text-sm">正常</span>'}</td>
+            <td class="px-4 py-3 text-center space-x-1">
+              ${isSu ? `<button onclick="setRating(${u.id})" class="text-yellow-600 text-xs hover:underline">Rating</button>` : ''}
+              ${isSu ? `<button onclick="setProvider(${u.id})" class="text-purple-600 text-xs hover:underline">提供者</button>` : ''}
+              ${canOperate ? (u.banned ? `<button onclick="unbanUser(${u.id})" class="text-green-600 text-xs hover:underline">解封</button>` : `<button onclick="banUser(${u.id})" class="text-red-600 text-xs hover:underline">封禁</button>`) : ''}
+              ${canOperate ? `<button onclick="forceLogout(${u.id})" class="text-orange-600 text-xs hover:underline">登出</button>` : ''}
+              ${isSu ? `<button onclick="resetPassword(${u.id})" class="text-blue-600 text-xs hover:underline">重置密码</button>` : ''}
+              ${isSu && u.id !== currentUser.id ? `<button onclick="sudoLogin(${u.id}, '${escapeHtml(u.username)}')" class="text-purple-600 text-xs hover:underline">免密</button>` : ''}
+            </td>
+          </tr>
+        `}).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    async function changeRole(uid, role) {
+      if (!confirm(`确定将用户 #${uid} 的角色更改为 ${role}？`)) { loadUsers(); return; }
+      try {
+        await apiCall('PUT', `/users/${uid}/role`, { role });
+        loadUsers();
+      } catch (err) { alert(err.message); loadUsers(); }
+    }
+
+    async function setRating(uid) {
+      const rating = prompt('设置 Rating 值（整数）：');
+      if (rating === null) return;
+      try {
+        await apiCall('PUT', `/users/${uid}/rating`, { rating: parseInt(rating) || 0 });
+        loadUsers();
+      } catch (err) { alert(err.message); }
+    }
+
+    async function setProvider(uid) {
+      const provider = prompt('设置提供者名称（留空清除）：');
+      if (provider === null) return;
+      try {
+        await apiCall('PUT', `/users/${uid}/provider`, { provider });
+        loadUsers();
+      } catch (err) { alert(err.message); }
+    }
+
+    async function loadAdminArticles() {
+      try {
+        const data = await apiCall('GET', '/articles?limit=100');
+        const el = document.getElementById('adminArticles');
+        if (data.articles.length === 0) { el.innerHTML = '<div class="text-gray-400 py-4 text-center">暂无文章</div>'; return; }
+        el.innerHTML = data.articles.map(a => `
+          <div class="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div>
+              <a href="/pages/article.html?id=${a.id}" class="font-medium text-gray-900 hover:text-indigo-600">${escapeHtml(a.title)}</a>
+              <div class="text-sm text-gray-500 mt-1">${escapeHtml(a.nickname || a.username)} · ${new Date(a.created_at).toLocaleString()} ${a.is_published ? '' : '<span class="text-yellow-600">未发布</span>'}</div>
+            </div>
+            <div class="flex space-x-2">
+              <a href="/pages/article-edit.html?id=${a.id}" class="text-indigo-600 text-sm hover:underline">编辑</a>
+              <button onclick="deleteArticle(${a.id})" class="text-red-600 text-sm hover:underline">删除</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    async function deleteArticle(id) {
+      if (!confirm('确定删除此文章？')) return;
+      try { await apiCall('DELETE', `/articles/${id}`); loadAdminArticles(); } catch (err) { alert(err.message); }
+    }
+
+    async function loadAdminFiles() {
+      try {
+        const data = await apiCall('GET', '/uploads?limit=100');
+        const el = document.getElementById('adminFiles');
+        if (!data.files || data.files.length === 0) { el.innerHTML = '<div class="text-gray-400 py-4 text-center">暂无文件</div>'; return; }
+        el.innerHTML = data.files.map(f => `
+          <div class="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div class="flex items-center space-x-3">
+              <span class="text-sm text-gray-500">#${f.id}</span>
+              <a href="/uploads/${f.filename}" target="_blank" class="text-indigo-600 text-sm hover:underline">${escapeHtml(f.original_name)}</a>
+              <span class="text-xs text-gray-400">${(f.size/1024).toFixed(1)}KB · ${escapeHtml(f.username || '匿名')}</span>
+              <span class="text-xs text-gray-400">${new Date(f.created_at).toLocaleString()}</span>
+            </div>
+            <button onclick="deleteFile(${f.id}, '${f.filename}')" class="text-red-600 text-sm hover:underline">删除</button>
+          </div>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    async function deleteFile(id, filename) {
+      if (!confirm('确定删除此文件？')) return;
+      try { await apiCall('DELETE', `/uploads/${id}`); loadAdminFiles(); } catch (err) { alert(err.message); }
+    }
+
+    async function loadOnlineUsers() {
+      try {
+        const data = await apiCall('GET', '/users/online');
+        const el = document.getElementById('onlineList');
+        if (data.users.length === 0) {
+          el.innerHTML = '<div class="text-center py-8 text-gray-400">暂无在线用户</div>';
+          return;
+        }
+        el.innerHTML = data.users.map(u => `
+          <div class="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div class="flex items-center space-x-4">
+              <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              </div>
+              <div>
+                <div class="font-medium text-gray-900">${escapeHtml(u.nickname || u.username)}</div>
+                <div class="text-sm text-gray-500">@${escapeHtml(u.username)} · ${roleBadge(u.role)}</div>
+              </div>
+            </div>
+            <div class="text-sm text-gray-400">最后活跃: ${new Date(u.lastActive).toLocaleTimeString()}</div>
+          </div>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    async function banUser(id) { try { await apiCall('POST', `/users/${id}/ban`); loadUsers(); } catch (err) { alert(err.message); } }
+    async function unbanUser(id) {
+      if (!confirm('确定解封此用户？')) return;
+      try { await apiCall('POST', `/users/${id}/unban`); loadUsers(); } catch (err) { alert(err.message); }
+    }
+    async function forceLogout(id) {
+      if (!confirm('确定强制登出此用户？')) return;
+      try {
+        const res = await apiCall('POST', `/users/${id}/force-logout`);
+        alert(res.message || '已强制登出');
+        loadUsers();
+      } catch (err) { alert(err.message); }
+    }
+    async function resetPassword(id) {
+      const pwd = prompt('新密码（至少 6 位）：');
+      if (!pwd) return;
+      try { await apiCall('POST', `/users/${id}/reset-password`, { new_password: pwd }); alert('密码已重置'); } catch (err) { alert(err.message); }
+    }
+
+    let currentContestId = null;
+
+    async function loadContests() {
+      try {
+        const data = await apiCall('GET', '/contests?limit=100');
+        document.getElementById('adminContests').innerHTML = data.contests.map(c => `
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 text-sm">${c.id}</td>
+            <td class="px-4 py-3 text-sm font-medium">${escapeHtml(c.title)}</td>
+            <td class="px-4 py-3 text-center text-sm">${c.problem_count || 0}</td>
+            <td class="px-4 py-3 text-center text-sm">${new Date(c.start_time).toLocaleString()}</td>
+            <td class="px-4 py-3 text-center text-sm">${new Date(c.end_time).toLocaleString()}</td>
+            <td class="px-4 py-3 text-center">
+              <button onclick="showContestProblemManager(${c.id}, '${escapeHtml(c.title)}')" class="text-green-600 text-sm hover:underline mr-2">管理题目</button>
+              <button onclick="deleteContest(${c.id})" class="text-red-600 text-sm hover:underline">删除</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    async function createContest() {
+      try {
+        await apiCall('POST', '/contests', {
+          title: document.getElementById('cTitle').value,
+          start_time: document.getElementById('cStart').value,
+          end_time: document.getElementById('cEnd').value,
+        });
+        hideCreateContest();
+        loadContests();
+      } catch (err) { alert(err.message); }
+    }
+
+    async function deleteContest(id) {
+      if (!confirm('确定删除此比赛？')) return;
+      try { await apiCall('DELETE', `/contests/${id}`); loadContests(); } catch (err) { alert(err.message); }
+    }
+
+    async function showContestProblemManager(cid, title) {
+      currentContestId = cid;
+      document.getElementById('contestProblemManager').classList.remove('hidden');
+      document.getElementById('contestProblemTitle').textContent = `管理比赛 - #${cid} ${title}`;
+      await Promise.all([loadContestProblems(), loadContestParticipants()]);
+    }
+
+    function hideContestProblemManager() {
+      document.getElementById('contestProblemManager').classList.add('hidden');
+      currentContestId = null;
+    }
+
+    async function loadContestParticipants() {
+      try {
+        const data = await apiCall('GET', `/contests/${currentContestId}/participants`);
+        document.getElementById('participantCount').textContent = data.total;
+        const el = document.getElementById('participantList');
+        if (data.participants.length === 0) {
+          el.innerHTML = '<div class="text-sm text-gray-400 py-1">暂无参赛用户</div>';
+          return;
+        }
+        el.innerHTML = data.participants.map(p => `
+          <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+            <div class="flex items-center space-x-3">
+              <span class="text-sm font-mono text-gray-500">#${p.user_id}</span>
+              <span class="text-sm font-medium">${escapeHtml(p.nickname || p.username)}</span>
+              ${roleBadge(p.role)}
+              ${p.invited_by_name ? `<span class="text-xs text-gray-400">被 ${escapeHtml(p.invited_by_name)} 邀请</span>` : '<span class="text-xs text-gray-400">自行加入</span>'}
+            </div>
+            <button onclick="removeContestParticipant(${p.user_id})" class="text-xs text-red-600 hover:underline">移除</button>
+          </div>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    async function inviteContestUser() {
+      const userId = parseInt(document.getElementById('cpUserId').value);
+      if (!userId) { alert('请输入用户 ID'); return; }
+      try {
+        await apiCall('POST', `/contests/${currentContestId}/invite`, { user_id: userId });
+        document.getElementById('cpUserId').value = '';
+        await loadContestParticipants();
+      } catch (err) { alert(err.message); }
+    }
+
+    async function removeContestParticipant(uid) {
+      if (!confirm('确定移除此用户？')) return;
+      try {
+        await apiCall('DELETE', `/contests/${currentContestId}/participants/${uid}`);
+        await loadContestParticipants();
+      } catch (err) { alert(err.message); }
+    }
+
+    async function loadContestProblems() {
+      try {
+        const data = await apiCall('GET', `/contests/${currentContestId}`);
+        const el = document.getElementById('contestProblemsList');
+        if (!data.problems || data.problems.length === 0) {
+          el.innerHTML = '<div class="text-sm text-gray-400 py-2">暂无题目</div>';
+          return;
+        }
+        el.innerHTML = data.problems.map(p => `
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <div class="flex items-center space-x-3">
+              <span class="text-sm font-mono text-indigo-600">#${p.id}</span>
+              <span class="text-sm font-medium">${escapeHtml(p.title)}</span>
+              ${p.alias ? `<span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">别名: ${escapeHtml(p.alias)}</span>` : ''}
+              ${p.is_public === 0 ? '<span class="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded">非公开</span>' : ''}
+              <span class="text-xs text-gray-400">排序: ${p.sort_order}</span>
+            </div>
+            <button onclick="removeContestProblem(${p.id})" class="text-xs text-red-600 hover:underline">移除</button>
+          </div>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    async function addContestProblem() {
+      const problemId = parseInt(document.getElementById('cpProblemId').value);
+      if (!problemId) { alert('请输入题目 ID'); return; }
+      const alias = document.getElementById('cpAlias').value.trim();
+      try {
+        await apiCall('POST', `/contests/${currentContestId}/problems`, { problem_id: problemId, alias: alias || undefined });
+        document.getElementById('cpProblemId').value = '';
+        document.getElementById('cpAlias').value = '';
+        await loadContestProblems();
+        loadContests();
+      } catch (err) { alert(err.message); }
+    }
+
+    async function removeContestProblem(problemId) {
+      if (!confirm('确定从此比赛中移除此题目？')) return;
+      try {
+        await apiCall('DELETE', `/contests/${currentContestId}/problems/${problemId}`);
+        await loadContestProblems();
+        loadContests();
+      } catch (err) { alert(err.message); }
+    }
+
+    loadAdminProblems();
+  </script>
+</body>
+</html>

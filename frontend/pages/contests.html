@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>比赛 - WinOJ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/api.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div id="nav"></div>
+  <div class="max-w-5xl mx-auto px-4 py-8">
+    <div id="contestList" class="space-y-4"></div>
+    <div id="empty" class="hidden text-center py-12 text-gray-400">暂无比赛</div>
+  </div>
+  <script>
+    document.getElementById('nav').innerHTML = renderNav('contests');
+    async function loadContests() {
+      try {
+        const data = await apiCall('GET', '/contests');
+        const el = document.getElementById('contestList');
+        const empty = document.getElementById('empty');
+        if (data.contests.length === 0) { el.innerHTML = ''; empty.classList.remove('hidden'); return; }
+        empty.classList.add('hidden');
+        el.innerHTML = data.contests.map(c => {
+          const now = new Date();
+          const start = new Date(c.start_time);
+          const end = new Date(c.end_time);
+          let status = '未开始', statusColor = 'bg-blue-50 text-blue-700';
+          if (now >= start && now <= end) { status = '进行中'; statusColor = 'bg-green-50 text-green-700'; }
+          else if (now > end) { status = '已结束'; statusColor = 'bg-gray-100 text-gray-600'; }
+          return `
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h2 class="text-xl font-bold text-gray-900">${escapeHtml(c.title)}</h2>
+                  <p class="text-sm text-gray-500 mt-1">${escapeHtml(c.description || '暂无描述')}</p>
+                  <div class="flex items-center space-x-4 mt-3 text-sm text-gray-500">
+                    <span>${c.problem_count || 0} 道题目</span>
+                    <span>由 ${escapeHtml(c.creator_name || '未知')} 创建</span>
+                  </div>
+                </div>
+                <span class="px-3 py-1 text-xs rounded-full font-medium ${statusColor}">${status}</span>
+              </div>
+              <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                <div class="text-sm text-gray-500">
+                  <span>${new Date(c.start_time).toLocaleString()} ~ ${new Date(c.end_time).toLocaleString()}</span>
+                </div>
+                <a href="/pages/contest.html?id=${c.id}" class="px-4 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">查看详情</a>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) { console.error(err); }
+    }
+    loadContests();
+  </script>
+</body>
+</html>

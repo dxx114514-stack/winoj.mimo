@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>题库 - WinOJ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/api.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div id="nav"></div>
+  <div class="max-w-5xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-gray-900">题库</h1>
+      <div class="flex items-center space-x-3">
+        <input id="search" type="text" placeholder="搜索题目..." class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" onkeyup="loadProblems()">
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">题号</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">标题</th>
+            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">时限</th>
+            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">内存</th>
+            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">类型</th>
+            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">操作</th>
+          </tr>
+        </thead>
+        <tbody id="problemList" class="divide-y divide-gray-100"></tbody>
+      </table>
+      <div id="empty" class="hidden text-center py-12 text-gray-400">暂无题目</div>
+    </div>
+    <div id="pagination" class="flex justify-center mt-6 space-x-2"></div>
+  </div>
+  <script>
+    document.getElementById('nav').innerHTML = renderNav('problems');
+    let currentPage = 1;
+    async function loadProblems() {
+      const search = document.getElementById('search').value;
+      try {
+        const data = await apiCall('GET', `/problems?page=${currentPage}&limit=20&search=${encodeURIComponent(search)}`);
+        const tbody = document.getElementById('problemList');
+        const empty = document.getElementById('empty');
+        if (data.problems.length === 0) {
+          tbody.innerHTML = '';
+          empty.classList.remove('hidden');
+          return;
+        }
+        empty.classList.add('hidden');
+        tbody.innerHTML = data.problems.map(p => `
+          <tr class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4 text-sm text-gray-500">${p.id}</td>
+            <td class="px-6 py-4">
+              <a href="/pages/problem.html?id=${p.id}" class="text-indigo-600 hover:text-indigo-800 font-medium">${escapeHtml(p.title)}</a>
+            </td>
+            <td class="px-6 py-4 text-center text-sm text-gray-600">${p.time_limit}ms</td>
+            <td class="px-6 py-4 text-center text-sm text-gray-600">${p.memory_limit}MB</td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700">${p.problem_type === 'traditional' ? '传统题' : p.problem_type === 'interactive' ? '交互题' : p.problem_type === 'submit_answer' ? '提交答案' : p.problem_type}</span>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <a href="/pages/submit.html?id=${p.id}" class="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">提交</a>
+            </td>
+          </tr>
+        `).join('');
+        const totalPages = Math.ceil(data.total / 20);
+        const pag = document.getElementById('pagination');
+        pag.innerHTML = Array.from({length: totalPages}, (_, i) => `
+          <button onclick="currentPage=${i+1};loadProblems()" class="px-3 py-1 rounded-lg text-sm ${i+1===currentPage?'bg-indigo-600 text-white':'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'}">${i+1}</button>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadProblems();
+  </script>
+</body>
+</html>

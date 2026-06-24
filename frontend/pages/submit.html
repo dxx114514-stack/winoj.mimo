@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>提交 - WinOJ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="/js/api.js"></script>
+  <style>.CodeMirror { height: 400px; border-radius: 0.75rem; font-size: 14px; text-align: left; }
+  .CodeMirror-code { text-align: left !important; }</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div id="nav"></div>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">提交代码</h1>
+    <div id="error" class="hidden mb-4 p-4 bg-red-50 text-red-700 rounded-xl text-sm"></div>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">题目</label>
+        <div id="problemInfo" class="px-4 py-2.5 bg-gray-50 rounded-xl text-gray-700">加载中...</div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">语言</label>
+        <select id="language" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" onchange="changeLang()">
+        </select>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">源代码</label>
+        <textarea id="sourceCode"></textarea>
+      </div>
+      <div class="flex justify-end">
+        <button id="submitBtn" onclick="submitCode()" class="px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition">提交</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.getElementById('nav').innerHTML = renderNav('problems');
+    const params = new URLSearchParams(window.location.search);
+    const pid = params.get('id');
+    let editor;
+    let problemData = null;
+
+    const langModes = { c: 'text/x-csrc', cpp: 'text/x-c++src', python3: 'text/x-python', java: 'text/x-java', javascript: 'text/javascript' };
+
+    async function init() {
+      editor = CodeMirror.fromTextArea(document.getElementById('sourceCode'), {
+        lineNumbers: true, mode: 'text/x-csrc', theme: 'default', indentUnit: 4
+      });
+      try {
+        const langs = await apiCall('GET', '/ide/languages');
+        const sel = document.getElementById('language');
+        sel.innerHTML = langs.map(l => `<option value="${l.name}">${l.display_name} (${l.extension})</option>`).join('');
+      } catch {}
+      if (pid) {
+        try {
+          problemData = await apiCall('GET', `/problems/${pid}`);
+          document.getElementById('problemInfo').innerHTML = `<span class="font-semibold">#${problemData.id}</span> ${escapeHtml(problemData.title)} <span class="text-sm text-gray-500 ml-2">时限: ${problemData.time_limit}ms | 内存: ${problemData.memory_limit}MB</span>`;
+        } catch (err) {
+          document.getElementById('problemInfo').innerHTML = '<span class="text-red-500">加载题目失败</span>';
+        }
+      } else {
+        document.getElementById('problemInfo').innerHTML = '<span class="text-gray-500">未选择题目</span>';
+      }
+    }
+
+    function changeLang() {
+      const lang = document.getElementById('language').value;
+      editor.setOption('mode', langModes[lang] || 'text/plain');
+    }
+
+    async function submitCode() {
+      if (!getToken()) { window.location.href = '/pages/login.html'; return; }
+      const btn = document.getElementById('submitBtn');
+      const errDiv = document.getElementById('error');
+      btn.disabled = true; btn.textContent = '提交中...';
+      errDiv.classList.add('hidden');
+      try {
+        const data = await apiCall('POST', '/submissions', {
+          problem_id: parseInt(pid) || 0,
+          language: document.getElementById('language').value,
+          source_code: editor.getValue()
+        });
+        window.location.href = `/pages/submission.html?id=${data.submission_id}`;
+      } catch (err) {
+        errDiv.textContent = err.message || '提交失败';
+        errDiv.classList.remove('hidden');
+        btn.disabled = false; btn.textContent = '提交';
+      }
+    }
+    init();
+  </script>
+</body>
+</html>

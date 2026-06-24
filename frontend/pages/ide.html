@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>在线编程 - WinOJ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="/js/api.js"></script>
+  <style>
+    .CodeMirror { height: 350px; border-radius: 0.75rem; font-size: 14px; text-align: left; }
+    .CodeMirror-code { text-align: left !important; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div id="nav"></div>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">在线编程</h1>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <label class="text-sm font-medium text-gray-700">语言:</label>
+            <select id="language" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" onchange="changeLang()">
+            </select>
+          </div>
+          <button onclick="runCode()" id="runBtn" class="px-6 py-2 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition flex items-center space-x-2">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <span>运行</span>
+          </button>
+        </div>
+        <textarea id="codeEditor"></textarea>
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">标准输入 (stdin)</label>
+          <textarea id="stdinInput" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none" placeholder="在此输入测试数据..."></textarea>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-gray-700">输出</h3>
+          <div id="runInfo" class="text-sm text-gray-500 hidden">
+            <span id="exitCode"></span>
+            <span id="timeInfo" class="ml-3"></span>
+          </div>
+        </div>
+        <div id="output" class="bg-gray-900 text-green-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap">点击 "运行" 执行代码...</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.getElementById('nav').innerHTML = renderNav('ide');
+    let editor;
+    const langModes = { c: 'text/x-csrc', cpp: 'text/x-c++src', python3: 'text/x-python', java: 'text/x-java', javascript: 'text/javascript' };
+    async function init() {
+      editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+        lineNumbers: true, mode: 'text/x-csrc', theme: 'default', indentUnit: 4, tabSize: 4
+      });
+      try {
+        const langs = await apiCall('GET', '/ide/languages');
+        const sel = document.getElementById('language');
+        sel.innerHTML = langs.map(l => `<option value="${l.name}">${l.display_name}</option>`).join('');
+      } catch {}
+    }
+    function changeLang() {
+      const lang = document.getElementById('language').value;
+      editor.setOption('mode', langModes[lang] || 'text/plain');
+    }
+    async function runCode() {
+      const btn = document.getElementById('runBtn');
+      const output = document.getElementById('output');
+      btn.disabled = true; btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg><span>运行中...</span>';
+      output.className = 'bg-gray-900 text-gray-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
+      output.textContent = '运行中...';
+      document.getElementById('runInfo').classList.add('hidden');
+      try {
+        const data = await apiCall('POST', '/ide/run', {
+          language: document.getElementById('language').value,
+          source_code: editor.getValue(),
+          stdin: document.getElementById('stdinInput').value
+        });
+        let out = '';
+        if (data.compile_error) {
+          out = `编译错误:\n${data.stderr}`;
+          output.className = 'bg-gray-900 text-red-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
+        } else {
+          if (data.stdout) out += data.stdout;
+          if (data.stderr) out += (out ? '\n' : '') + `标准错误:\n${data.stderr}`;
+          if (data.exit_code !== 0) out += (out ? '\n' : '') + `退出码: ${data.exit_code}`;
+          if (!out) out = '程序执行成功（无输出）';
+          output.className = data.exit_code === 0 ? 'bg-gray-900 text-green-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap' : 'bg-gray-900 text-yellow-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
+        }
+        output.textContent = out;
+        document.getElementById('runInfo').classList.remove('hidden');
+        document.getElementById('exitCode').textContent = `退出码: ${data.exit_code}`;
+        document.getElementById('timeInfo').textContent = `耗时: ${data.time_used}ms`;
+      } catch (err) {
+        output.textContent = `错误: ${err.message || '运行失败'}`;
+        output.className = 'bg-gray-900 text-red-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
+      }
+      btn.disabled = false; btn.innerHTML = '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>运行</span>';
+    }
+    init();
+  </script>
+</body>
+</html>
