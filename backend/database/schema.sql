@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS users (
   banned INTEGER DEFAULT 0,
   signature TEXT DEFAULT '',
   bio TEXT DEFAULT '',
-  provider TEXT DEFAULT '',
   rating INTEGER DEFAULT 1500,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))

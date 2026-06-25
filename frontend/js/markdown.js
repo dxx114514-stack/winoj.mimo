@@ -26,36 +26,6 @@ function renderMarkdownBlock(text) {
   return renderMarkdown(text);
 }
 
-function renderDynamicSignature(sig) {
-  if (!sig) return '';
-  try {
-    let result = sig;
-    result = result.replace(/D\("([^"]*)"\)/g, (_, content) => {
-      const now = new Date();
-      const hours = now.getHours();
-      let greeting = '你好';
-      if (hours < 6) greeting = '夜深了';
-      else if (hours < 12) greeting = '早上好';
-      else if (hours < 14) greeting = '中午好';
-      else if (hours < 18) greeting = '下午好';
-      else greeting = '晚上好';
-      return `${greeting}！${content}`;
-    });
-    result = result.replace(/D\('([^']*)'\)/g, (_, content) => {
-      const now = new Date();
-      const hours = now.getHours();
-      let greeting = '你好';
-      if (hours < 6) greeting = '夜深了';
-      else if (hours < 12) greeting = '早上好';
-      else if (hours < 14) greeting = '中午好';
-      else if (hours < 18) greeting = '下午好';
-      else greeting = '晚上好';
-      return `${greeting}！${content}`;
-    });
-    return escapeHtml(result);
-  } catch { return escapeHtml(sig); }
-}
-
 function renderMathInElement(container) {
   if (typeof katex === 'undefined') return;
   try {

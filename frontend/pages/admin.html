@@ -202,7 +202,6 @@
               <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">昵称</th>
               <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">角色</th>
               <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Rating</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">提供者</th>
               <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">状态</th>
               <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">操作</th>
             </tr>
@@ -712,11 +711,9 @@
               ` : roleBadge(u.role)}
             </td>
             <td class="px-4 py-3 text-center text-sm">${u.rating || 1500}</td>
-            <td class="px-4 py-3 text-center text-xs">${escapeHtml(u.provider || '-')}</td>
             <td class="px-4 py-3 text-center">${u.banned ? '<span class="text-red-600 text-sm">已封禁</span>' : '<span class="text-green-600 text-sm">正常</span>'}</td>
             <td class="px-4 py-3 text-center space-x-1">
               ${isSu ? `<button onclick="setRating(${u.id})" class="text-yellow-600 text-xs hover:underline">Rating</button>` : ''}
-              ${isSu ? `<button onclick="setProvider(${u.id})" class="text-purple-600 text-xs hover:underline">提供者</button>` : ''}
               ${canOperate ? (u.banned ? `<button onclick="unbanUser(${u.id})" class="text-green-600 text-xs hover:underline">解封</button>` : `<button onclick="banUser(${u.id})" class="text-red-600 text-xs hover:underline">封禁</button>`) : ''}
               ${canOperate ? `<button onclick="forceLogout(${u.id})" class="text-orange-600 text-xs hover:underline">登出</button>` : ''}
               ${isSu ? `<button onclick="resetPassword(${u.id})" class="text-blue-600 text-xs hover:underline">重置密码</button>` : ''}
@@ -740,15 +737,7 @@
       if (rating === null) return;
       try {
         await apiCall('PUT', `/users/${uid}/rating`, { rating: parseInt(rating) || 0 });
-        loadUsers();
-      } catch (err) { alert(err.message); }
-    }
-
-    async function setProvider(uid) {
-      const provider = prompt('设置提供者名称（留空清除）：');
-      if (provider === null) return;
-      try {
-        await apiCall('PUT', `/users/${uid}/provider`, { provider });
+        await refreshUser();
         loadUsers();
       } catch (err) { alert(err.message); }
     }

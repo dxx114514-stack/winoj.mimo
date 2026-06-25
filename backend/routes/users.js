@@ -10,37 +10,37 @@ router.get('/online', requireAuth, requireRole('admin'), (req, res) => {
   res.json({ total: users.length, users });
 });
 
+router.get('/rating', (req, res) => {
+  const { page = 1, limit = 50 } = req.query;
+  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const total = db.prepare('SELECT COUNT(*) as c FROM users').get().c;
+  const users = db.prepare(`
+    SELECT id, username, nickname, role, rating, created_at
+    FROM users ORDER BY rating DESC, created_at ASC LIMIT ? OFFSET ?
+  `).all(parseInt(limit), offset);
+  res.json({ total, page: parseInt(page), limit: parseInt(limit), users });
+});
+
 router.get('/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, provider, rating, created_at FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, rating, created_at FROM users WHERE id = ?').get(req.user.id);
   res.json(user);
 });
 
 router.put('/me', requireAuth, (req, res) => {
-  const { nickname, signature, bio, provider } = req.body;
+  const { nickname, signature, bio } = req.body;
   const updates = [];
   const values = [];
   if (nickname !== undefined) { updates.push('nickname = ?'); values.push(nickname); }
   if (signature !== undefined) { updates.push('signature = ?'); values.push(signature.slice(0, 1000)); }
   if (bio !== undefined) { updates.push('bio = ?'); values.push(bio); }
-  if (provider !== undefined && req.user.role === 'su') { updates.push('provider = ?'); values.push(provider); }
   if (updates.length === 0) {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'No fields to update.' });
   }
   updates.push("updated_at = datetime('now')");
   values.push(req.user.id);
   db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...values);
-  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, provider, rating FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, rating FROM users WHERE id = ?').get(req.user.id);
   res.json(user);
-});
-
-router.put('/:id/provider', requireAuth, requireRole('su'), (req, res) => {
-  const { provider } = req.body;
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
-  if (!user) {
-    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
-  }
-  db.prepare('UPDATE users SET provider = ?, updated_at = datetime(\'now\') WHERE id = ?').run(provider || '', req.params.id);
-  res.json({ message: 'Provider updated.' });
 });
 
 router.put('/:id/rating', requireAuth, requireRole('su'), (req, res) => {
@@ -70,7 +70,7 @@ router.get('/', requireAuth, requireRole('admin'), (req, res) => {
     params.push(role);
   }
   const total = db.prepare(`SELECT COUNT(*) as c FROM users ${where}`).get(...params).c;
-  const users = db.prepare(`SELECT id, username, nickname, role, banned, rating, provider, created_at FROM users ${where} ORDER BY id LIMIT ? OFFSET ?`).all(...params, parseInt(limit), offset);
+  const users = db.prepare(`SELECT id, username, nickname, role, banned, rating, created_at FROM users ${where} ORDER BY id LIMIT ? OFFSET ?`).all(...params, parseInt(limit), offset);
   res.json({ total, page: parseInt(page), limit: parseInt(limit), users });
 });
 

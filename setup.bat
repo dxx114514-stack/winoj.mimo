@@ -27,11 +27,6 @@ if %errorlevel% neq 0 (
 for /f "tokens=*" %%i in ('node -v') do set NODE_VER=%%i
 echo [OK] Node.js %NODE_VER%
 
-:: ========== 检查 Git ==========
-where git >nul 2>&1
-set HAS_GIT=0
-if %errorlevel% equ 0 set HAS_GIT=1
-
 :: ========== 安装 Node.js 依赖 ==========
 if not exist "backend\node_modules" (
     echo [..] 安装 Node.js 依赖...
@@ -41,6 +36,45 @@ if not exist "backend\node_modules" (
     echo [OK] Node.js 依赖安装完成
 ) else (
     echo [OK] Node.js 依赖已存在，跳过
+)
+
+:: ========== 自动添加环境变量 ==========
+set "TOOLS_DIR=%~dp0tools"
+
+:: --- GCC ---
+where gcc >nul 2>&1
+if %errorlevel% neq 0 (
+    if exist "%TOOLS_DIR%\gcc\mingw64\bin" (
+        echo [..] 自动添加 GCC 到系统 PATH...
+        setx PATH "%TOOLS_DIR%\gcc\mingw64\bin;%PATH%" >nul 2>&1
+        set "PATH=%TOOLS_DIR%\gcc\mingw64\bin;%PATH%"
+        echo [OK] GCC 已添加到系统 PATH
+    )
+)
+
+:: --- Python ---
+where python >nul 2>&1
+if %errorlevel% neq 0 (
+    where py >nul 2>&1
+    if %errorlevel% neq 0 (
+        if exist "%TOOLS_DIR%\python\python.exe" (
+            echo [..] 自动添加 Python 到系统 PATH...
+            setx PATH "%TOOLS_DIR%\python;%TOOLS_DIR%\python\Scripts;%PATH%" >nul 2>&1
+            set "PATH=%TOOLS_DIR%\python;%TOOLS_DIR%\python\Scripts;%PATH%"
+            echo [OK] Python 已添加到系统 PATH
+        )
+    )
+)
+
+:: --- JDK ---
+where javac >nul 2>&1
+if %errorlevel% neq 0 (
+    if exist "%TOOLS_DIR%\java\bin\javac.exe" (
+        echo [..] 自动添加 JDK 到系统 PATH...
+        setx PATH "%TOOLS_DIR%\java\bin;%PATH%" >nul 2>&1
+        set "PATH=%TOOLS_DIR%\java\bin;%PATH%"
+        echo [OK] JDK 已添加到系统 PATH
+    )
 )
 
 :: ========== 检查并安装 GCC ==========
@@ -62,9 +96,9 @@ if %errorlevel% neq 0 (
         if exist "tools\gcc.7z" del "tools\gcc.7z"
     )
     if exist "tools\gcc\mingw64\bin" (
-        set "PATH=%~dp0tools\gcc\mingw64\bin;%PATH%"
-        echo [OK] GCC 已安装到 tools\gcc
-        echo [!!] 请将 tools\gcc\mingw64\bin 添加到系统 PATH 环境变量
+        setx PATH "%TOOLS_DIR%\gcc\mingw64\bin;%PATH%" >nul 2>&1
+        set "PATH=%TOOLS_DIR%\gcc\mingw64\bin;%PATH%"
+        echo [OK] GCC 已安装并添加到系统 PATH
     ) else (
         echo [ERROR] GCC 安装失败，请手动安装 MinGW-w64
         echo 下载地址: https://github.com/niXman/mingw-builds-binaries/releases
@@ -90,9 +124,9 @@ if %errorlevel% neq 0 (
             if exist "tools\python-installer.exe" del "tools\python-installer.exe"
         )
         if exist "tools\python\python.exe" (
-            set "PATH=%~dp0tools\python;%~dp0tools\python\Scripts;%PATH%"
-            echo [OK] Python 已安装到 tools\python
-            echo [!!] 请将 tools\python 添加到系统 PATH 环境变量
+            setx PATH "%TOOLS_DIR%\python;%TOOLS_DIR%\python\Scripts;%PATH%" >nul 2>&1
+            set "PATH=%TOOLS_DIR%\python;%TOOLS_DIR%\python\Scripts;%PATH%"
+            echo [OK] Python 已安装并添加到系统 PATH
         ) else (
             echo [ERROR] Python 安装失败，请手动安装 Python 3
             echo 下载地址: https://www.python.org/downloads/
@@ -123,9 +157,9 @@ if %errorlevel% neq 0 (
         if exist "tools\java.zip" del "tools\java.zip"
     )
     if exist "tools\java\bin\javac.exe" (
-        set "PATH=%~dp0tools\java\bin;%PATH%"
-        echo [OK] JDK 已安装到 tools\java
-        echo [!!] 请将 tools\java\bin 添加到系统 PATH 环境变量
+        setx PATH "%TOOLS_DIR%\java\bin;%PATH%" >nul 2>&1
+        set "PATH=%TOOLS_DIR%\java\bin;%PATH%"
+        echo [OK] JDK 已安装并添加到系统 PATH
     ) else (
         echo [ERROR] JDK 安装失败，请手动安装 JDK
         echo 下载地址: https://adoptium.net/

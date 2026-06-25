@@ -34,6 +34,13 @@ function setUser(user) {
   localStorage.setItem('user', JSON.stringify(user));
 }
 
+async function refreshUser() {
+  try {
+    const u = await apiCall('GET', '/users/me');
+    setUser({ id: u.id, username: u.username, nickname: u.nickname, role: u.role, rating: u.rating });
+  } catch {}
+}
+
 async function apiCall(method, path, body = null) {
   const headers = { 'Content-Type': 'application/json' };
   const token = getToken();
@@ -145,6 +152,7 @@ function renderNav(activePage) {
               <a href="/pages/articles.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='articles'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">文章</a>
               <a href="/pages/ide.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='ide'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">在线编程</a>
               <a href="/pages/upload.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='upload'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">图床</a>
+              <a href="/pages/rating.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='rating'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">排行</a>
               <a href="/pages/contests.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='contests'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">比赛</a>
               ${isTeacher ? `<a href="/pages/admin.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='admin'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">管理</a>` : ''}
               ${isAdmin ? `<a href="/pages/languages.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='languages'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">语言</a>` : ''}
