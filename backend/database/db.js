@@ -86,6 +86,10 @@ async function initDB() {
   const probColsResult = sqlDb.exec("PRAGMA table_info(problems)");
   const probCols = probColsResult.length > 0 ? probColsResult[0].values.map(r => r[1]) : [];
   if (!probCols.includes('provider')) sqlDb.exec("ALTER TABLE problems ADD COLUMN provider TEXT DEFAULT ''");
+
+  const artColsResult = sqlDb.exec("PRAGMA table_info(articles)");
+  const artCols = artColsResult.length > 0 ? artColsResult[0].values.map(r => r[1]) : [];
+  if (!artCols.includes('provider')) sqlDb.exec("ALTER TABLE articles ADD COLUMN provider TEXT DEFAULT ''");
   saveDB();
 
   const langCount = prepare('SELECT COUNT(*) as c FROM languages').get()?.c || 0;

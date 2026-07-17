@@ -41,6 +41,7 @@
             <h2 class="text-xl font-bold text-gray-900 mb-2">${escapeHtml(a.title)}</h2>
             <div class="flex items-center space-x-3 text-sm text-gray-500">
               <span>${escapeHtml(a.nickname || a.username)}</span>
+              ${a.provider ? `<span class="px-2 py-0.5 text-xs rounded-full bg-purple-50 text-purple-700">${escapeHtml(a.provider)}</span>` : ''}
               <span>·</span>
               <span>${new Date(a.created_at).toLocaleDateString()}</span>
             </div>

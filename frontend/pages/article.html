@@ -38,6 +38,7 @@
                   <span>${escapeHtml(a.nickname || a.username)}</span>
                   <span>·</span>
                   <span>${new Date(a.created_at).toLocaleString()}</span>
+                  ${a.provider ? `<span class="px-2 py-0.5 text-xs rounded-full bg-purple-50 text-purple-700">提供者: ${escapeHtml(a.provider)}</span>` : ''}
                   ${a.is_published ? '' : '<span class="px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-700">未发布</span>'}
                 </div>
               </div>

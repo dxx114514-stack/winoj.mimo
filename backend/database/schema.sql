@@ -176,6 +176,7 @@ CREATE TABLE IF NOT EXISTS articles (
   title TEXT NOT NULL,
   content TEXT DEFAULT '',
   author_id INTEGER NOT NULL,
+  provider TEXT DEFAULT '',
   is_published INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now')),

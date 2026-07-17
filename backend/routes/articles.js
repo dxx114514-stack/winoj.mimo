@@ -14,7 +14,7 @@ router.get('/', optionalAuth, (req, res) => {
   }
   const total = db.prepare(`SELECT COUNT(*) as c FROM articles a ${where}`).get(...params).c;
   const articles = db.prepare(`
-    SELECT a.id, a.title, a.author_id, a.is_published, a.created_at, a.updated_at,
+    SELECT a.id, a.title, a.author_id, a.provider, a.is_published, a.created_at, a.updated_at,
            u.username, u.nickname
     FROM articles a LEFT JOIN users u ON a.author_id = u.id
     ${where} ORDER BY a.id DESC LIMIT ? OFFSET ?
@@ -38,12 +38,12 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', requireAuth, requireRole('teacher'), (req, res) => {
-  const { title, content, is_published } = req.body;
+  const { title, content, provider, is_published } = req.body;
   if (!title) {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'Title is required.' });
   }
-  const result = db.prepare('INSERT INTO articles (title, content, author_id, is_published) VALUES (?, ?, ?, ?)').run(
-    title, content || '', req.user.id, is_published ? 1 : 0
+  const result = db.prepare('INSERT INTO articles (title, content, author_id, provider, is_published) VALUES (?, ?, ?, ?, ?)').run(
+    title, content || '', req.user.id, provider || '', is_published ? 1 : 0
   );
   const article = db.prepare('SELECT * FROM articles WHERE id = ?').get(result.lastInsertRowid);
   res.status(201).json(article);
@@ -57,11 +57,12 @@ router.put('/:id', requireAuth, requireRole('teacher'), (req, res) => {
   if (req.user.id !== article.author_id && !['admin', 'su'].includes(req.user.role)) {
     return res.status(403).json({ code: 6, reason: 'ERR_FORBIDDEN', message: 'Cannot edit other users\' articles.' });
   }
-  const { title, content, is_published } = req.body;
+  const { title, content, provider, is_published } = req.body;
   const updates = [];
   const values = [];
   if (title !== undefined) { updates.push('title = ?'); values.push(title); }
   if (content !== undefined) { updates.push('content = ?'); values.push(content); }
+  if (provider !== undefined) { updates.push('provider = ?'); values.push(provider); }
   if (is_published !== undefined) { updates.push('is_published = ?'); values.push(is_published ? 1 : 0); }
   if (updates.length === 0) {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'No fields to update.' });
