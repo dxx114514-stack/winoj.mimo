@@ -67,14 +67,23 @@ async function apiCall(method, path, body = null) {
         if (!retryRes.ok) throw { status: retryRes.status, ...retryData };
         return retryData;
       }
+      const refreshData = await refreshRes.json().catch(() => ({}));
+      if (refreshRes.status === 403 || refreshData.reason === 'ERR_FORBIDDEN') {
+        clearToken();
+        if (window.location.pathname !== '/pages/login.html') window.location.href = '/pages/login.html';
+        throw { status: 403, message: '账号已被封禁' };
+      }
     } catch (e) {
       if (e && e.status !== undefined) throw e;
     }
     clearToken();
-    if (window.location.pathname !== '/pages/login.html') {
-      window.location.href = '/pages/login.html';
-    }
+    if (window.location.pathname !== '/pages/login.html') window.location.href = '/pages/login.html';
     throw data;
+  }
+  if (res.status === 403 && data.reason === 'ERR_FORBIDDEN') {
+    clearToken();
+    if (window.location.pathname !== '/pages/login.html') window.location.href = '/pages/login.html';
+    throw { status: 403, message: data.message || '账号已被封禁' };
   }
   if (!res.ok) throw { status: res.status, ...data };
   return data;

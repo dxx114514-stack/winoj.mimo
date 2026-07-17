@@ -16,6 +16,9 @@ function requireAuth(req, res, next) {
     if (!user) {
       return res.status(401).json({ code: 5, reason: 'ERR_UNAUTHORIZED', message: 'User not found.' });
     }
+    if (user.banned) {
+      return res.status(403).json({ code: 6, reason: 'ERR_FORBIDDEN', message: 'Account has been banned.' });
+    }
     req.user = user;
     onlineUsers.set(user.id, { username: user.username, nickname: user.nickname, role: user.role, lastActive: Date.now() });
     next();
@@ -34,9 +37,13 @@ function optionalAuth(req, res, next) {
   try {
     const payload = jwt.verify(token, config.jwt.accessSecret);
     const user = db.prepare('SELECT id, username, nickname, role, banned FROM users WHERE id = ?').get(payload.userId);
-    req.user = user || null;
-    if (user) {
-      onlineUsers.set(user.id, { username: user.username, nickname: user.nickname, role: user.role, lastActive: Date.now() });
+    if (user && user.banned) {
+      req.user = null;
+    } else {
+      req.user = user || null;
+      if (user) {
+        onlineUsers.set(user.id, { username: user.username, nickname: user.nickname, role: user.role, lastActive: Date.now() });
+      }
     }
   } catch {
     req.user = null;
