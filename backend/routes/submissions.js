@@ -3,6 +3,7 @@ const db = require('../database/db');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { createRateLimit } = require('../middleware/ratelimit');
 const { enqueueSubmission } = require('../services/judge');
+const { reviewCode, CODE_LENGTH_LIMIT } = require('../services/security');
 const config = require('../config/config');
 
 const router = express.Router();
@@ -70,7 +71,7 @@ router.get('/:id', requireAuth, (req, res) => {
   });
 });
 
-router.post('/', requireAuth, rateLimit, (req, res) => {
+router.post('/', requireAuth, rateLimit, async (req, res) => {
   const { problem_id, language, source_code, answer_data } = req.body;
 
   if (!problem_id) {
@@ -89,8 +90,8 @@ router.post('/', requireAuth, rateLimit, (req, res) => {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'source_code is required for this problem type.' });
   }
 
-  if (source_code && source_code.length > config.sandbox.maxSourceSize) {
-    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'Source code too large.' });
+  if (source_code && source_code.length > CODE_LENGTH_LIMIT) {
+    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: `源代码超过 ${CODE_LENGTH_LIMIT} 字符限制。` });
   }
 
   const allowed = JSON.parse(problem.allowed_languages || '[]');
@@ -101,6 +102,26 @@ router.post('/', requireAuth, rateLimit, (req, res) => {
   const langCheck = db.prepare('SELECT id FROM languages WHERE name = ? AND is_enabled = 1').get(language);
   if (!langCheck) {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: `Language '${language}' is not available.` });
+  }
+
+  let securityResult = { safe: true };
+  if (source_code && source_code.length >= 50) {
+    try {
+      securityResult = await reviewCode(source_code, language);
+    } catch (e) {
+      console.error('Security review failed:', e.message);
+    }
+  }
+
+  if (!securityResult.safe) {
+    db.prepare('UPDATE users SET banned = 1, updated_at = datetime(\'now\') WHERE id = ?').run(req.user.id);
+    db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(req.user.id);
+    return res.status(403).json({
+      code: 6,
+      reason: 'ERR_FORBIDDEN',
+      message: `代码安全审查未通过: ${securityResult.reason}。账户已被封禁。`,
+      threat_level: securityResult.threat_level
+    });
   }
 
   const newId = db.findNextId('submissions');

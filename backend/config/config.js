@@ -23,5 +23,10 @@ module.exports = {
   rateLimit: {
     submissions: { windowMs: 60000, max: 10 },
     ideRun: { windowMs: 60000, max: 20 }
+  },
+  security: {
+    lmStudioUrl: process.env.LM_STUDIO_URL || 'http://localhost:1234/v1/chat/completions',
+    lmStudioModel: process.env.LM_STUDIO_MODEL || 'google-gemma-4-8b',
+    codeLengthLimit: parseInt(process.env.CODE_LENGTH_LIMIT || '50000')
   }
 };
