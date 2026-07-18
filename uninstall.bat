@@ -1,5 +1,5 @@
 @echo off
-chcp 936 >nul 2>&1
+chcp 65001 >nul 2>&1
 title WinOJ - 卸载依赖
 
 echo ==========================================

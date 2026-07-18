@@ -1,5 +1,5 @@
 @echo off
-chcp 936 >nul 2>&1
+chcp 65001 >nul 2>&1
 title WinOJ
 
 echo ==========================================
@@ -33,12 +33,11 @@ if not exist "backend\node_modules" (
     echo [OK] Dependencies installed
 )
 
-:: ========== 检查 Ollama ==========
 where ollama >nul 2>&1
 if %errorlevel% equ 0 (
     tasklist /fi "imagename eq ollama.exe" 2>nul | findstr /i "ollama.exe" >nul 2>&1
     if %errorlevel% neq 0 (
-        echo [..] Starting Ollama service...
+        echo [..] Starting Ollama...
         start "" ollama serve
         timeout /t 3 /nobreak >nul
         echo [OK] Ollama started
