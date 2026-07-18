@@ -746,8 +746,8 @@
         if (currentUser && currentUser.id === uid) {
           currentUser.rating = parseInt(rating) || 0;
           setUser(currentUser);
+          document.getElementById('nav').innerHTML = renderNav('admin');
         }
-        await refreshUser();
         loadUsers();
       } catch (err) { alert(err.message); }
     }
