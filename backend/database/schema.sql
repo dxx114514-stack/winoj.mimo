@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   signature TEXT DEFAULT '',
   bio TEXT DEFAULT '',
   rating INTEGER DEFAULT 1500,
+  hide_rating INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );

@@ -48,8 +48,10 @@ function setUser(user) {
 async function refreshUser() {
   try {
     const u = await apiCall('GET', '/users/me');
+    const current = getUser() || {};
     setUser({ id: u.id, username: u.username, nickname: u.nickname, role: u.role, rating: u.rating });
-  } catch {}
+    return u;
+  } catch { return null; }
 }
 
 async function apiCall(method, path, body = null) {

@@ -11,12 +11,16 @@ router.get('/online', requireAuth, requireRole('admin'), (req, res) => {
 });
 
 router.get('/rating', (req, res) => {
-  const { page = 1, limit = 50 } = req.query;
+  const { page = 1, limit = 50, show_hidden = '' } = req.query;
   const offset = (parseInt(page) - 1) * parseInt(limit);
-  const total = db.prepare('SELECT COUNT(*) as c FROM users').get().c;
+  let where = 'WHERE hide_rating = 0';
+  if (show_hidden === '1' && req.user && ['admin', 'su'].includes(req.user.role)) {
+    where = '';
+  }
+  const total = db.prepare(`SELECT COUNT(*) as c FROM users ${where}`).get().c;
   const users = db.prepare(`
     SELECT id, username, nickname, role, rating, created_at
-    FROM users ORDER BY rating DESC, created_at ASC LIMIT ? OFFSET ?
+    FROM users ${where} ORDER BY rating DESC, created_at ASC LIMIT ? OFFSET ?
   `).all(parseInt(limit), offset);
   res.json({ total, page: parseInt(page), limit: parseInt(limit), users });
 });
@@ -27,19 +31,20 @@ router.get('/me', requireAuth, (req, res) => {
 });
 
 router.put('/me', requireAuth, (req, res) => {
-  const { nickname, signature, bio } = req.body;
+  const { nickname, signature, bio, hide_rating } = req.body;
   const updates = [];
   const values = [];
   if (nickname !== undefined) { updates.push('nickname = ?'); values.push(nickname); }
   if (signature !== undefined) { updates.push('signature = ?'); values.push(signature.slice(0, 1000)); }
   if (bio !== undefined) { updates.push('bio = ?'); values.push(bio); }
+  if (hide_rating !== undefined) { updates.push('hide_rating = ?'); values.push(hide_rating ? 1 : 0); }
   if (updates.length === 0) {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'No fields to update.' });
   }
   updates.push("updated_at = datetime('now')");
   values.push(req.user.id);
   db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...values);
-  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, rating FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, rating, hide_rating FROM users WHERE id = ?').get(req.user.id);
   res.json(user);
 });
 
@@ -56,6 +61,22 @@ router.put('/:id/rating', requireAuth, requireRole('su'), (req, res) => {
   res.json({ message: 'Rating updated.', rating: Math.round(rating) });
 });
 
+router.put('/:id/hide-rating', requireAuth, requireRole('admin'), (req, res) => {
+  const { hide_rating } = req.body;
+  const target = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!target) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
+  }
+  const hierarchy = ['user', 'teacher', 'admin', 'su'];
+  const myLevel = hierarchy.indexOf(req.user.role);
+  const targetLevel = hierarchy.indexOf(target.role);
+  if (myLevel <= targetLevel) {
+    return res.status(403).json({ code: 6, reason: 'ERR_FORBIDDEN', message: 'Cannot modify a user with equal or higher privileges.' });
+  }
+  db.prepare('UPDATE users SET hide_rating = ?, updated_at = datetime(\'now\') WHERE id = ?').run(hide_rating ? 1 : 0, req.params.id);
+  res.json({ message: 'Hide rating updated.', hide_rating: hide_rating ? 1 : 0 });
+});
+
 router.get('/', requireAuth, requireRole('admin'), (req, res) => {
   const { page = 1, limit = 50, search = '', role = '' } = req.query;
   const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -70,7 +91,7 @@ router.get('/', requireAuth, requireRole('admin'), (req, res) => {
     params.push(role);
   }
   const total = db.prepare(`SELECT COUNT(*) as c FROM users ${where}`).get(...params).c;
-  const users = db.prepare(`SELECT id, username, nickname, role, banned, rating, created_at FROM users ${where} ORDER BY id LIMIT ? OFFSET ?`).all(...params, parseInt(limit), offset);
+  const users = db.prepare(`SELECT id, username, nickname, role, banned, rating, hide_rating, created_at FROM users ${where} ORDER BY id LIMIT ? OFFSET ?`).all(...params, parseInt(limit), offset);
   res.json({ total, page: parseInt(page), limit: parseInt(limit), users });
 });
 

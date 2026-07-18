@@ -10,7 +10,10 @@
 <body class="bg-gray-50 min-h-screen">
   <div id="nav"></div>
   <div class="max-w-3xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold text-gray-900 mb-6">Rating 排行榜</h1>
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-gray-900">Rating 排行榜</h1>
+      <div id="adminToggle"></div>
+    </div>
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <table class="w-full">
         <thead class="bg-gray-50 border-b border-gray-200">
@@ -30,6 +33,28 @@
   <script>
     document.getElementById('nav').innerHTML = renderNav('');
     let currentPage = 1;
+    let showHidden = false;
+    const currentUser = getUser();
+    const isAdmin = currentUser && ['admin', 'su'].includes(currentUser.role);
+
+    if (isAdmin) {
+      document.getElementById('adminToggle').innerHTML = `
+        <button onclick="toggleShowHidden()" id="showHiddenBtn" class="px-3 py-1.5 text-sm rounded-lg border ${showHidden ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}">
+          ${showHidden ? '显示隐藏用户' : '隐藏用户已隐藏'}
+        </button>
+      `;
+    }
+
+    function toggleShowHidden() {
+      showHidden = !showHidden;
+      currentPage = 1;
+      const btn = document.getElementById('showHiddenBtn');
+      if (btn) {
+        btn.className = `px-3 py-1.5 text-sm rounded-lg border ${showHidden ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`;
+        btn.textContent = showHidden ? '显示隐藏用户' : '隐藏用户已隐藏';
+      }
+      loadRating();
+    }
 
     function getRatingLevel(rating) {
       if (rating >= 2400) return { text: '大师', color: 'text-red-600 bg-red-50' };
@@ -42,7 +67,9 @@
 
     async function loadRating() {
       try {
-        const data = await apiCall('GET', `/users/rating?page=${currentPage}&limit=20`);
+        const params = new URLSearchParams({ page: currentPage, limit: 20 });
+        if (showHidden && isAdmin) params.append('show_hidden', '1');
+        const data = await apiCall('GET', `/users/rating?${params.toString()}`);
         const tbody = document.getElementById('ratingList');
         const empty = document.getElementById('empty');
         if (data.users.length === 0) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
