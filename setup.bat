@@ -168,6 +168,30 @@ if %errorlevel% neq 0 (
     echo [OK] JDK 已安装
 )
 
+:: ========== 检查 Ollama ==========
+echo.
+echo [..] 检查 Ollama (AI 代码审查)...
+where ollama >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [!!] 未检测到 Ollama，AI 代码审查功能将不可用
+    echo 下载地址: https://ollama.com/
+    echo 安装后请运行: ollama pull qwen3:1.7b
+) else (
+    echo [OK] Ollama 已安装
+    ollama list 2>nul | findstr "qwen3:1.7b" >nul 2>&1
+    if %errorlevel% neq 0 (
+        echo [..] 拉取 qwen3:1.7b 模型...
+        ollama pull qwen3:1.7b
+        if %errorlevel% equ 0 (
+            echo [OK] qwen3:1.7b 模型已就绪
+        ) else (
+            echo [!!] 模型拉取失败，请手动运行: ollama pull qwen3:1.7b
+        )
+    ) else (
+        echo [OK] qwen3:1.7b 模型已就绪
+    )
+)
+
 :: ========== 初始化数据库 ==========
 echo.
 echo [..] 初始化数据库...

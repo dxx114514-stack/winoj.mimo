@@ -33,6 +33,24 @@ if not exist "backend\node_modules" (
     echo [OK] Dependencies installed
 )
 
+:: ========== 检查 Ollama ==========
+where ollama >nul 2>&1
+if %errorlevel% equ 0 (
+    tasklist /fi "imagename eq ollama.exe" 2>nul | findstr /i "ollama.exe" >nul 2>&1
+    if %errorlevel% neq 0 (
+        echo [..] Starting Ollama service...
+        start "" ollama serve
+        timeout /t 3 /nobreak >nul
+        echo [OK] Ollama started
+    ) else (
+        echo [OK] Ollama is running
+    )
+) else (
+    echo [!!] Ollama not found - AI code review disabled
+    echo Download: https://ollama.com/
+)
+
+echo.
 echo [..] Starting WinOJ server...
 echo.
 
