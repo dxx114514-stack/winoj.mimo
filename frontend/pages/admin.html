@@ -722,6 +722,7 @@
               ${canOperate ? `<button onclick="forceLogout(${u.id})" class="text-orange-600 text-xs hover:underline">登出</button>` : ''}
               ${isSu ? `<button onclick="resetPassword(${u.id})" class="text-blue-600 text-xs hover:underline">重置密码</button>` : ''}
               ${isSu && u.id !== currentUser.id ? `<button onclick="sudoLogin(${u.id}, '${escapeHtml(u.username)}')" class="text-purple-600 text-xs hover:underline">免密</button>` : ''}
+              ${isSu && u.id !== currentUser.id ? `<button onclick="deleteUser(${u.id})" class="text-red-600 text-xs hover:underline">删除</button>` : ''}
             </td>
           </tr>
         `}).join('');
@@ -741,6 +742,11 @@
       if (rating === null) return;
       try {
         await apiCall('PUT', `/users/${uid}/rating`, { rating: parseInt(rating) || 0 });
+        const currentUser = getUser();
+        if (currentUser && currentUser.id === uid) {
+          currentUser.rating = parseInt(rating) || 0;
+          setUser(currentUser);
+        }
         await refreshUser();
         loadUsers();
       } catch (err) { alert(err.message); }
