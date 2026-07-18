@@ -11,7 +11,7 @@
 - **自定义计分脚本**：支持变量、算术运算、位运算、逻辑运算、条件分支，可针对测试点组或整题自定义评分
 - **子任务系统**：测试点分组、组间依赖、自定义聚合策略（求和/取最小/取最大等）
 - **编译错误检测**：编译失败时提前终止评测，返回详细编译输出
-- **代码长度限制**：源代码上限 50000 字符
+- **代码长度限制**：源代码上限 128KB (131072 字符)
 
 ### AI 代码安全审查
 - **Ollama 集成**：自动调用本地 Ollama（默认 qwen3:1.7b）审查提交代码
@@ -79,7 +79,7 @@
 - **双 Token 认证**：15 分钟 Access Token + 7 天 Refresh Token（HttpOnly Cookie）
 - **封禁全拦截**：封禁用户的 Access Token 和 Refresh Token 均被拒绝
 - **速率限制**：提交和 IDE 运行接口均有令牌桶限流
-- **输入校验**：SQL 注入防护、源码大小限制（50000 字符）、语言可用性检查
+- **输入校验**：SQL 注入防护、源码大小限制（128KB）、语言可用性检查
 - **沙箱隔离**：用户代码在独立临时目录执行，结束后自动清理
 
 ## 环境要求
@@ -144,7 +144,7 @@ npm start
 | `rateLimit.ideRun` | 20次/分钟 | IDE 运行频率限制 |
 | `security.ollamaUrl` | `localhost:11434` | Ollama API 地址 |
 | `security.ollamaModel` | `qwen3:1.7b` | 审查模型 |
-| `security.codeLengthLimit` | 50000 | 源代码最大字符数 |
+| `security.codeLengthLimit` | 131072 | 源代码最大字符数 (128KB) |
 
 ### 环境变量
 
@@ -156,7 +156,7 @@ DB_PATH=./data/winoj.db
 SANDBOX_TEMP=C:\temp\winoj-sandbox
 OLLAMA_URL=http://localhost:11434/api/chat
 OLLAMA_MODEL=qwen3:1.7b
-CODE_LENGTH_LIMIT=50000
+CODE_LENGTH_LIMIT=131072
 ```
 
 ## 项目结构
@@ -202,7 +202,7 @@ winoj/
 - 新增 setup.bat 端口预留和自动添加系统 PATH 环境变量
 - 新增 Rating 排行榜页面
 - 新增 LM Studio Gemma 代码安全审查，恶意代码自动封禁
-- 新增代码长度限制（50000 字符）
+- 新增代码长度限制（128KB）
 - 新增封禁用户 Access Token 和 Refresh Token 全拦截
 - 新增题目/文章编号删除后自动回收复用
 - 新增提交记录删除功能

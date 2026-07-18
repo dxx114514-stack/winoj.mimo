@@ -27,6 +27,6 @@ module.exports = {
   security: {
     ollamaUrl: process.env.OLLAMA_URL || 'http://localhost:11434/api/chat',
     ollamaModel: process.env.OLLAMA_MODEL || 'qwen3:1.7b',
-    codeLengthLimit: parseInt(process.env.CODE_LENGTH_LIMIT || '50000')
+    codeLengthLimit: parseInt(process.env.CODE_LENGTH_LIMIT || '131072')
   }
 };
