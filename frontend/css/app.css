@@ -2,5 +2,13 @@
 .prose p { text-align: left !important; }
 .prose div { text-align: left !important; }
 .prose h1, .prose h2, .prose h3 { text-align: left !important; }
+.prose h4, .prose h5, .prose h6 { text-align: left !important; }
+.prose ul, .prose ol { text-align: left !important; }
+.prose blockquote { text-align: left !important; }
+.prose pre { text-align: left !important; }
+.prose code { text-align: left !important; }
 .text-gray-700 { text-align: left !important; }
 .whitespace-pre-wrap { text-align: left !important; }
+textarea { text-align: left !important; }
+input[type="text"], input:not([type]) { text-align: left !important; }
+.content-area, .article-content, .problem-content, .bio-content { text-align: left !important; }

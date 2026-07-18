@@ -1,3 +1,14 @@
+(function() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .prose { text-align: left !important; }
+    .prose p, .prose div, .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 { text-align: left !important; }
+    .prose ul, .prose ol, .prose blockquote, .prose pre, .prose code { text-align: left !important; }
+    textarea, input[type="text"], input:not([type]) { text-align: left !important; }
+  `;
+  document.head.appendChild(style);
+})();
+
 const API_BASE = '/api/v1';
 
 function getToken() {
