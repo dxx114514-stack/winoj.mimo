@@ -4,6 +4,7 @@ const { optionalAuth } = require('../middleware/auth');
 const { createRateLimit } = require('../middleware/ratelimit');
 const { prepareWorkDir, compile, runCode, cleanupWorkDir, loadLanguageConfig } = require('../sandbox/executor');
 const config = require('../config/config');
+const { reviewCode, CODE_LENGTH_LIMIT } = require('../services/security');
 
 const router = express.Router();
 const rateLimit = createRateLimit(config.rateLimit.ideRun);
@@ -19,8 +20,8 @@ router.post('/run', optionalAuth, rateLimit, async (req, res) => {
   if (!language || !source_code) {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'language and source_code are required.' });
   }
-  if (source_code.length > config.sandbox.maxSourceSize) {
-    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'Source code too large.' });
+  if (source_code.length > CODE_LENGTH_LIMIT) {
+    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: `Source code too large. Maximum ${CODE_LENGTH_LIMIT} characters.` });
   }
 
   const langCheck = db.prepare('SELECT id FROM languages WHERE name = ? AND is_enabled = 1').get(language);
@@ -32,6 +33,19 @@ router.post('/run', optionalAuth, rateLimit, async (req, res) => {
   const lang = langConfig[language];
   if (!lang) {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: `Language configuration not found for '${language}'.` });
+  }
+
+  const securityReview = await reviewCode(source_code, language);
+  if (!securityReview.safe) {
+    if (req.user) {
+      db.prepare('UPDATE users SET banned = 1 WHERE id = ?').run(req.user.id);
+      db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(req.user.id);
+    }
+    return res.status(403).json({
+      code: 6,
+      reason: 'ERR_FORBIDDEN',
+      message: `代码安全审查未通过: ${securityReview.reason}。威胁等级: ${securityReview.threat_level}。账号已被封禁。`
+    });
   }
 
   let workDir, srcFile, exeFile;
