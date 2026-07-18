@@ -90,6 +90,25 @@ async function initDB() {
   const artColsResult = sqlDb.exec("PRAGMA table_info(articles)");
   const artCols = artColsResult.length > 0 ? artColsResult[0].values.map(r => r[1]) : [];
   if (!artCols.includes('provider')) sqlDb.exec("ALTER TABLE articles ADD COLUMN provider TEXT DEFAULT ''");
+
+  const tagsTableExists = sqlDb.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='tags'");
+  if (tagsTableExists.length === 0 || tagsTableExists[0].values.length === 0) {
+    sqlDb.exec(`CREATE TABLE IF NOT EXISTS tags (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT UNIQUE NOT NULL,
+      color TEXT DEFAULT '#6366f1',
+      created_at TEXT DEFAULT (datetime('now'))
+    )`);
+    sqlDb.exec(`CREATE TABLE IF NOT EXISTS problem_tags (
+      problem_id INTEGER NOT NULL,
+      tag_id INTEGER NOT NULL,
+      PRIMARY KEY (problem_id, tag_id),
+      FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE,
+      FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+    )`);
+    sqlDb.exec('CREATE INDEX IF NOT EXISTS idx_problem_tags_problem ON problem_tags(problem_id)');
+    sqlDb.exec('CREATE INDEX IF NOT EXISTS idx_problem_tags_tag ON problem_tags(tag_id)');
+  }
   saveDB();
 
   const langCount = prepare('SELECT COUNT(*) as c FROM languages').get()?.c || 0;

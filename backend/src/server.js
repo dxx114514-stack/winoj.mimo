@@ -26,6 +26,7 @@ async function main() {
   const contestRoutes = require('../routes/contests');
   const articleRoutes = require('../routes/articles');
   const uploadRoutes = require('../routes/uploads');
+  const tagRoutes = require('../routes/tags');
 
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/problems', problemRoutes);
@@ -36,6 +37,7 @@ async function main() {
   app.use('/api/v1/contests', contestRoutes);
   app.use('/api/v1/articles', articleRoutes);
   app.use('/api/v1/uploads', uploadRoutes);
+  app.use('/api/v1/tags', tagRoutes);
 
   app.get('/api/v1/stats', (req, res) => {
     const problems = db.prepare('SELECT COUNT(*) as c FROM problems WHERE is_public = 1').get().c;

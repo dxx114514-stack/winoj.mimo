@@ -24,12 +24,21 @@
       try {
         const p = await apiCall('GET', `/problems/${pid}`);
         document.title = `${p.title} - WinOJ`;
+        let tagsHtml = '';
+        try {
+          const tags = await apiCall('GET', `/tags/problem/${p.id}`);
+          if (tags.length > 0) {
+            tagsHtml = tags.map(t => `<span class="px-3 py-1 text-xs rounded-full" style="background-color: ${t.color}20; color: ${t.color}">${escapeHtml(t.name)}</span>`).join('');
+          }
+        } catch {}
+
         document.getElementById('content').innerHTML = `
           <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
             <div class="flex items-start justify-between mb-6">
               <div>
                 <h1 class="text-3xl font-bold text-gray-900">${escapeHtml(p.title)}</h1>
                 <div class="flex flex-wrap gap-2 mt-3">
+                  ${tagsHtml}
                   <span class="px-3 py-1 text-xs rounded-full bg-blue-50 text-blue-700">${p.problem_type === 'traditional' ? '传统题' : p.problem_type === 'interactive' ? '交互题' : p.problem_type === 'submit_answer' ? '提交答案' : p.problem_type}</span>
                   <span class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">时限: ${p.time_limit}ms</span>
                   <span class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">内存: ${p.memory_limit}MB</span>

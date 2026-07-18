@@ -14,10 +14,10 @@
 - **代码长度限制**：源代码上限 50000 字符
 
 ### AI 代码安全审查
-- **LM Studio 集成**：自动调用本地 LM Studio（默认 google-gemma-4-8b）审查提交代码
+- **Ollama 集成**：自动调用本地 Ollama（默认 qwen3:1.7b）审查提交代码
 - **恶意代码检测**：检测文件攻击、网络攻击、权限提升、挖矿程序、敏感信息窃取等
 - **自动封禁**：发现恶意代码立即封禁用户并踢出登录
-- **配置灵活**：可通过 `LM_STUDIO_URL` 和 `LM_STUDIO_MODEL` 环境变量自定义
+- **配置灵活**：可通过 `OLLAMA_URL` 和 `OLLAMA_MODEL` 环境变量自定义
 
 ### 题目管理
 - **题目 CRUD**：教师及以上角色可创建、编辑、删除题目
@@ -142,8 +142,8 @@ npm start
 | `sandbox.maxOutputSize` | 64KB | 最大输出大小 |
 | `rateLimit.submissions` | 10次/分钟 | 提交频率限制 |
 | `rateLimit.ideRun` | 20次/分钟 | IDE 运行频率限制 |
-| `security.lmStudioUrl` | `localhost:1234` | LM Studio API 地址 |
-| `security.lmStudioModel` | `google-gemma-4-8b` | 审查模型 |
+| `security.ollamaUrl` | `localhost:11434` | Ollama API 地址 |
+| `security.ollamaModel` | `qwen3:1.7b` | 审查模型 |
 | `security.codeLengthLimit` | 50000 | 源代码最大字符数 |
 
 ### 环境变量
@@ -154,8 +154,8 @@ JWT_ACCESS_SECRET=your-secret
 JWT_REFRESH_SECRET=your-secret
 DB_PATH=./data/winoj.db
 SANDBOX_TEMP=C:\temp\winoj-sandbox
-LM_STUDIO_URL=http://localhost:1234/v1/chat/completions
-LM_STUDIO_MODEL=google-gemma-4-8b
+OLLAMA_URL=http://localhost:11434/api/chat
+OLLAMA_MODEL=qwen3:1.7b
 CODE_LENGTH_LIMIT=50000
 ```
 
@@ -245,7 +245,7 @@ A: 使用 `@变量` 赋值、`if/fi` 条件判断、`==`/`and`/`or` 运算符。
 A: 行内公式用 `$E=mc^2$`，块级公式用 `$$\sum_{i=1}^{n} i$$`。
 
 **Q: AI 安全审查如何配置？**
-A: 安装 LM Studio 并加载 Gemma 模型，默认监听 `localhost:1234`。可通过环境变量 `LM_STUDIO_URL` 和 `LM_STUDIO_MODEL` 自定义。
+A: 安装 Ollama 并拉取 qwen3:1.7b 模型（`ollama pull qwen3:1.7b`），默认监听 `localhost:11434`。可通过环境变量 `OLLAMA_URL` 和 `OLLAMA_MODEL` 自定义。
 
 **Q: 数据库在哪里？**
 A: 默认在 `backend/data/winoj.db`，SQLite 格式，所有数据在重启后保留。

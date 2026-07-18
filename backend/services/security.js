@@ -1,7 +1,7 @@
 const config = require('../config/config');
 
-const LM_STUDIO_URL = config.security.lmStudioUrl;
-const LM_STUDIO_MODEL = config.security.lmStudioModel;
+const OLLAMA_URL = config.security.ollamaUrl;
+const OLLAMA_MODEL = config.security.ollamaModel;
 const CODE_LENGTH_LIMIT = config.security.codeLengthLimit;
 
 const SECURITY_PROMPT = `你是一个代码安全审查专家。请审查以下用户提交的代码，判断是否包含恶意代码。
@@ -26,28 +26,31 @@ async function reviewCode(sourceCode, language) {
   }
 
   try {
-    const response = await fetch(LM_STUDIO_URL, {
+    const response = await fetch(OLLAMA_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: LM_STUDIO_MODEL,
+        model: OLLAMA_MODEL,
         messages: [
           { role: 'system', content: SECURITY_PROMPT },
           { role: 'user', content: `语言: ${language}\n\n代码:\n\`\`\`\n${sourceCode}\n\`\`\`` }
         ],
-        temperature: 0.1,
-        max_tokens: 500
+        stream: false,
+        options: {
+          temperature: 0.1,
+          num_predict: 500
+        }
       }),
-      signal: AbortSignal.timeout(30000)
+      signal: AbortSignal.timeout(60000)
     });
 
     if (!response.ok) {
-      console.error(`LM Studio error: ${response.status}`);
+      console.error(`Ollama error: ${response.status}`);
       return { safe: true, reason: '审查服务暂时不可用', threat_level: 'none' };
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
+    const content = data.message?.content || '';
 
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
@@ -66,4 +69,4 @@ async function reviewCode(sourceCode, language) {
   }
 }
 
-module.exports = { reviewCode, CODE_LENGTH_LIMIT, LM_STUDIO_URL, LM_STUDIO_MODEL };
+module.exports = { reviewCode, CODE_LENGTH_LIMIT, OLLAMA_URL, OLLAMA_MODEL };

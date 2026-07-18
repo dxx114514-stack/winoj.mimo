@@ -25,8 +25,8 @@ module.exports = {
     ideRun: { windowMs: 60000, max: 20 }
   },
   security: {
-    lmStudioUrl: process.env.LM_STUDIO_URL || 'http://localhost:1234/v1/chat/completions',
-    lmStudioModel: process.env.LM_STUDIO_MODEL || 'google-gemma-4-8b',
+    ollamaUrl: process.env.OLLAMA_URL || 'http://localhost:11434/api/chat',
+    ollamaModel: process.env.OLLAMA_MODEL || 'qwen3:1.7b',
     codeLengthLimit: parseInt(process.env.CODE_LENGTH_LIMIT || '50000')
   }
 };

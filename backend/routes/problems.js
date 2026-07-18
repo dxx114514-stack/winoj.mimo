@@ -17,16 +17,32 @@ function sanitizeProblem(p) {
 }
 
 router.get('/', (req, res) => {
-  const { page = 1, limit = 50, search = '' } = req.query;
+  const { page = 1, limit = 50, search = '', tag = '' } = req.query;
   const offset = (parseInt(page) - 1) * parseInt(limit);
-  let where = 'WHERE is_public = 1';
+  let where = 'WHERE p.is_public = 1';
   const params = [];
+  
   if (search) {
-    where += ' AND (title LIKE ? OR description LIKE ?)';
+    where += ' AND (p.title LIKE ? OR p.description LIKE ?)';
     params.push(`%${search}%`, `%${search}%`);
   }
-  const total = db.prepare(`SELECT COUNT(*) as c FROM problems ${where}`).get(...params).c;
-  const problems = db.prepare(`SELECT id, title, problem_type, time_limit, memory_limit, is_public, created_at FROM problems ${where} ORDER BY id DESC LIMIT ? OFFSET ?`).all(...params, parseInt(limit), offset);
+  
+  if (tag) {
+    where += ' AND p.id IN (SELECT pt.problem_id FROM problem_tags pt JOIN tags t ON pt.tag_id = t.id WHERE t.name = ?)';
+    params.push(tag);
+  }
+  
+  const total = db.prepare(`SELECT COUNT(*) as c FROM problems p ${where}`).get(...params).c;
+  const problems = db.prepare(`SELECT p.id, p.title, p.problem_type, p.time_limit, p.memory_limit, p.is_public, p.created_at FROM problems p ${where} ORDER BY p.id DESC LIMIT ? OFFSET ?`).all(...params, parseInt(limit), offset);
+
+  for (const problem of problems) {
+    const tags = db.prepare(`
+      SELECT t.id, t.name, t.color FROM tags t
+      JOIN problem_tags pt ON t.id = pt.tag_id
+      WHERE pt.problem_id = ?
+    `).all(problem.id);
+    problem.tags = tags;
+  }
 
   res.json({ total, page: parseInt(page), limit: parseInt(limit), problems });
 });
