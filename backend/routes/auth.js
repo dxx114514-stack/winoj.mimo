@@ -44,7 +44,7 @@ router.post('/login', (req, res) => {
 
   res.json({
     access_token: accessToken,
-    user: { id: user.id, username: user.username, nickname: user.nickname, role: user.role }
+    user: { id: user.id, username: user.username, nickname: user.nickname, role: user.role, rating: user.rating }
   });
 });
 
@@ -77,7 +77,7 @@ router.post('/register', (req, res) => {
 
   res.status(201).json({
     access_token: accessToken,
-    user: { id: result.lastInsertRowid, username, nickname: nickname || username, role: 'user' }
+    user: { id: result.lastInsertRowid, username, nickname: nickname || username, role: 'user', rating: 1500 }
   });
 });
 
