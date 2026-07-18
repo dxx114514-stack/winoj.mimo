@@ -138,6 +138,10 @@
             <div class="flex space-x-2">
               <button onclick="addTestCase()" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200">+ 添加测试点</button>
               <button onclick="batchAddTestCases()" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">批量添加</button>
+              <label class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 cursor-pointer">
+                上传ZIP
+                <input id="zipInput" type="file" accept=".zip" class="hidden" onchange="uploadZip(this.files[0])">
+              </label>
             </div>
           </div>
           <div id="testCasesList" class="space-y-2"></div>
@@ -688,6 +692,28 @@
           loadTestCases();
         }).catch(e => alert(e.message));
       } catch (e) { alert('JSON 格式错误: ' + e.message); }
+    }
+
+    async function uploadZip(file) {
+      if (!file) return;
+      if (!currentProblemId) { alert('请先选择题目'); return; }
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const res = await fetch(`/api/v1/problems/${currentProblemId}/testdata-zip`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${getToken()}` },
+          body: formData
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || '上传失败');
+        alert(data.message);
+        await loadGroups();
+        await loadTestCases();
+      } catch (err) {
+        alert(err.message || '上传失败');
+      }
+      document.getElementById('zipInput').value = '';
     }
 
     async function loadUsers() {

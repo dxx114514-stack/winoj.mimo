@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const AdmZip = require('adm-zip');
 const db = require('../database/db');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
@@ -180,6 +181,135 @@ router.post('/:id/testdata', requireAuth, requireRole('teacher'), upload.array('
   }
 
   res.json({ message: `Uploaded ${count} test case(s).` });
+});
+
+router.post('/:id/testdata-zip', requireAuth, requireRole('teacher'), upload.single('file'), (req, res) => {
+  const problem = db.prepare('SELECT * FROM problems WHERE id = ?').get(req.params.id);
+  if (!problem) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'Problem not found.' });
+  }
+  if (!req.file) {
+    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'No file uploaded.' });
+  }
+  if (!req.file.originalname.endsWith('.zip')) {
+    fs.unlinkSync(req.file.path);
+    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'File must be a .zip file.' });
+  }
+
+  const problemDir = path.join(__dirname, '../../problems', String(problem.id));
+  fs.mkdirSync(problemDir, { recursive: true });
+
+  try {
+    const zip = new AdmZip(req.file.path);
+    const entries = zip.getEntries();
+
+    const rootScript = [];
+    const subtasks = {};
+    const rootTestCases = {};
+
+    for (const entry of entries) {
+      if (entry.isDirectory) continue;
+      const entryPath = entry.entryName;
+      const parts = entryPath.split('/').filter(p => p);
+      if (parts.length === 0) continue;
+
+      const fileName = parts[parts.length - 1];
+      const dirPath = parts.slice(0, -1).join('/');
+
+      if (parts.length === 1) {
+        if (fileName.toLowerCase() === 'script.txt') {
+          rootScript.push(entry.getData().toString('utf8'));
+        } else {
+          const match = fileName.match(/^(.+)\.(in|out|ans)$/);
+          if (match) {
+            const name = match[1];
+            const ext = match[2] === 'ans' ? 'out' : match[2];
+            if (!rootTestCases[name]) rootTestCases[name] = {};
+            rootTestCases[name][ext] = entry.getData().toString('utf8');
+          }
+        }
+      } else {
+        const subtaskName = parts[0];
+        if (!subtasks[subtaskName]) {
+          subtasks[subtaskName] = { require: [], script: [], testCases: {} };
+        }
+
+        if (fileName.toLowerCase() === 'require.txt') {
+          const content = entry.getData().toString('utf8');
+          const deps = content.split(/[\s\n]+/).filter(s => s.trim());
+          subtasks[subtaskName].require.push(...deps);
+        } else if (fileName.toLowerCase() === 'script.txt') {
+          subtasks[subtaskName].script.push(entry.getData().toString('utf8'));
+        } else {
+          const match = fileName.match(/^(.+)\.(in|out|ans)$/);
+          if (match) {
+            const name = match[1];
+            const ext = match[2] === 'ans' ? 'out' : match[2];
+            if (!subtasks[subtaskName].testCases[name]) subtasks[subtaskName].testCases[name] = {};
+            subtasks[subtaskName].testCases[name][ext] = entry.getData().toString('utf8');
+          }
+        }
+      }
+    }
+
+    db.prepare('DELETE FROM test_cases WHERE problem_id = ?').run(problem.id);
+    db.prepare('DELETE FROM test_groups WHERE problem_id = ?').run(problem.id);
+
+    let order = 0;
+    let count = 0;
+
+    if (rootScript.length > 0) {
+      db.prepare("UPDATE problems SET scoring_script = ?, updated_at = datetime('now') WHERE id = ?").run(rootScript.join('\n'), problem.id);
+    }
+
+    for (const [subtaskName, subtaskData] of Object.entries(subtasks)) {
+      const depIds = [];
+      for (const depName of subtaskData.require) {
+        const depGroup = db.prepare('SELECT id FROM test_groups WHERE problem_id = ? AND subtask_id = ?').get(problem.id, depName);
+        if (depGroup) depIds.push(depGroup.id);
+      }
+
+      const groupResult = db.prepare('INSERT INTO test_groups (problem_id, subtask_id, score, aggregator, dependency, scoring_script) VALUES (?, ?, ?, ?, ?, ?)').run(
+        problem.id,
+        subtaskName,
+        0,
+        'sum',
+        JSON.stringify(depIds),
+        subtaskData.script.join('\n')
+      );
+      const groupId = groupResult.lastInsertRowid;
+
+      for (const [name, files] of Object.entries(subtaskData.testCases)) {
+        order++;
+        const inputPath = path.join(problemDir, `${subtaskName}_${name}.in`);
+        const outputPath = path.join(problemDir, `${subtaskName}_${name}.out`);
+        if (files.in) fs.writeFileSync(inputPath, files.in);
+        if (files.out) fs.writeFileSync(outputPath, files.out);
+        db.prepare('INSERT INTO test_cases (problem_id, group_id, input_file, output_file, sort_order) VALUES (?, ?, ?, ?, ?)').run(
+          problem.id, groupId, inputPath, outputPath, order
+        );
+        count++;
+      }
+    }
+
+    for (const [name, files] of Object.entries(rootTestCases)) {
+      order++;
+      const inputPath = path.join(problemDir, `${name}.in`);
+      const outputPath = path.join(problemDir, `${name}.out`);
+      if (files.in) fs.writeFileSync(inputPath, files.in);
+      if (files.out) fs.writeFileSync(outputPath, files.out);
+      db.prepare('INSERT INTO test_cases (problem_id, input_file, output_file, sort_order) VALUES (?, ?, ?, ?)').run(
+        problem.id, inputPath, outputPath, order
+      );
+      count++;
+    }
+
+    fs.unlinkSync(req.file.path);
+    res.json({ message: `Imported ${count} test case(s) from ${Object.keys(subtasks).length} subtask(s).` });
+  } catch (err) {
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    res.status(500).json({ code: 2, reason: 'ERR_INVALID_STATE', message: `Failed to process ZIP: ${err.message}` });
+  }
 });
 
 router.get('/:id/testdata', requireAuth, requireRole('teacher'), (req, res) => {
