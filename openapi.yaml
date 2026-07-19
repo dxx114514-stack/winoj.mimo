@@ -1,0 +1,2095 @@
+openapi: 3.0.3
+info:
+  title: WinOJ API
+  description: |
+    Windows 在线评测系统 API。支持多语言代码评测、安全沙箱执行、自定义计分脚本、比赛管理、文章系统、Rating 机制、AI 代码安全审查等功能。
+
+    ## 认证
+    大部分接口需携带 JWT Token：`Authorization: Bearer <access_token>`
+    Access Token 有效期 15 分钟，过期后通过 `POST /auth/refresh` 刷新。
+
+    ## 错误响应
+    ```json
+    { "code": 1|2|3|4|5|6, "reason": "ERR_xxx", "message": "..." }
+    ```
+    错误码：1=参数错误, 2=状态错误, 3=未找到, 4=限流, 5=未认证, 6=权限不足
+
+    ## 角色层级
+    user < teacher < admin < su
+  version: 1.4.0
+  contact:
+    name: WinOJ
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: 本地开发
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: "错误码: 1=参数错误, 2=状态错误, 3=未找到, 4=限流, 5=未认证, 6=权限不足"
+        reason:
+          type: string
+        message:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        nickname:
+          type: string
+        role:
+          type: string
+          enum: [user, teacher, admin, su]
+        rating:
+          type: integer
+        signature:
+          type: string
+        bio:
+          type: string
+        created_at:
+          type: string
+
+    Problem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        input_desc:
+          type: string
+        output_desc:
+          type: string
+        hint:
+          type: string
+        time_limit:
+          type: integer
+          description: 毫秒
+        memory_limit:
+          type: integer
+          description: MB
+        problem_type:
+          type: string
+          enum: [traditional, interactive, communication, submit_answer]
+        compare_mode:
+          type: string
+          enum: [text_strict, text_relaxed, real_number, spj]
+        is_public:
+          type: integer
+          enum: [0, 1]
+        provider:
+          type: string
+        created_at:
+          type: string
+
+    Submission:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        problem_id:
+          type: integer
+        language:
+          type: string
+        source_code:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, compiling, judging, accepted, wrong_answer, time_limit_exceeded, memory_limit_exceeded, runtime_error, compile_error, system_error, pending_rejudge]
+        score:
+          type: number
+        time_used:
+          type: integer
+          description: 毫秒
+        memory_used:
+          type: integer
+          description: KB
+        created_at:
+          type: string
+
+    SubmissionDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        submission_id:
+          type: integer
+        test_case_id:
+          type: integer
+        group_id:
+          type: integer
+        subtask_id:
+          type: string
+        status:
+          type: string
+        score:
+          type: number
+        time_used:
+          type: integer
+        memory_used:
+          type: integer
+        stdout:
+          type: string
+        stderr:
+          type: string
+        exit_code:
+          type: integer
+
+    TestCase:
+      type: object
+      properties:
+        id:
+          type: integer
+        input_data:
+          type: string
+        output_data:
+          type: string
+        input_file:
+          type: string
+        output_file:
+          type: string
+        score:
+          type: number
+        sort_order:
+          type: integer
+
+    TestGroup:
+      type: object
+      properties:
+        id:
+          type: integer
+        problem_id:
+          type: integer
+        subtask_id:
+          type: string
+        score:
+          type: number
+        aggregator:
+          type: string
+          enum: [sum, min, max, min_score, max_time, custom]
+        dependency:
+          type: array
+          items:
+            type: integer
+        scoring_script:
+          type: string
+
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        color:
+          type: string
+        created_at:
+          type: string
+
+    Contest:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        start_time:
+          type: string
+        end_time:
+          type: string
+        is_virtual:
+          type: integer
+        created_by:
+          type: integer
+        created_at:
+          type: string
+
+    Article:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        author_id:
+          type: integer
+        provider:
+          type: string
+        is_published:
+          type: integer
+          enum: [0, 1]
+        created_at:
+          type: string
+        updated_at:
+          type: string
+
+    Language:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        display_name:
+          type: string
+        compile_cmd:
+          type: string
+        run_cmd:
+          type: string
+        extension:
+          type: string
+        is_enabled:
+          type: integer
+          enum: [0, 1]
+
+    UploadedFile:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        filename:
+          type: string
+        original_name:
+          type: string
+        mime_type:
+          type: string
+        size:
+          type: integer
+        created_at:
+          type: string
+
+    Stats:
+      type: object
+      properties:
+        problems:
+          type: integer
+        submissions:
+          type: integer
+        users:
+          type: integer
+        languages:
+          type: integer
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 50
+    SearchParam:
+      name: search
+      in: query
+      schema:
+        type: string
+
+  responses:
+    BadRequest:
+      description: 参数错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: 未认证
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: 权限不足
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: 未找到
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+paths:
+  # ===== AUTH =====
+  /auth/login:
+    post:
+      tags: [认证]
+      summary: 登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: 登录成功
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: "refresh_token=xxx; HttpOnly; Path=/api/v1/auth"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /auth/register:
+    post:
+      tags: [认证]
+      summary: 注册
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 32
+                password:
+                  type: string
+                  minLength: 6
+                nickname:
+                  type: string
+      responses:
+        '201':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /auth/refresh:
+    post:
+      tags: [认证]
+      summary: 刷新 Token
+      description: 需携带 HttpOnly Cookie 中的 refresh_token
+      responses:
+        '200':
+          description: 刷新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /auth/logout:
+    post:
+      tags: [认证]
+      summary: 退出登录
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 退出成功
+
+  /auth/change-password:
+    post:
+      tags: [认证]
+      summary: 修改密码
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [old_password, new_password]
+              properties:
+                old_password:
+                  type: string
+                new_password:
+                  type: string
+                  minLength: 6
+      responses:
+        '200':
+          description: 修改成功
+
+  # ===== PROBLEMS =====
+  /problems:
+    get:
+      tags: [题目]
+      summary: 题目列表
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: tag
+          in: query
+          schema:
+            type: string
+          description: 按标签筛选
+      responses:
+        '200':
+          description: 题目列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  problems:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Problem'
+    post:
+      tags: [题目]
+      summary: 创建题目
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                input_desc:
+                  type: string
+                output_desc:
+                  type: string
+                hint:
+                  type: string
+                time_limit:
+                  type: integer
+                  default: 1000
+                memory_limit:
+                  type: integer
+                  default: 256
+                problem_type:
+                  type: string
+                  enum: [traditional, interactive, communication, submit_answer]
+                  default: traditional
+                compare_mode:
+                  type: string
+                  enum: [text_strict, text_relaxed, real_number, spj]
+                  default: text_strict
+                real_number_tolerance:
+                  type: object
+                  properties:
+                    absolute:
+                      type: number
+                      default: 0.001
+                    relative:
+                      type: number
+                      default: 0.001
+                spj_code:
+                  type: string
+                allowed_languages:
+                  type: array
+                  items:
+                    type: string
+                is_public:
+                  type: boolean
+                  default: true
+                provider:
+                  type: string
+      responses:
+        '201':
+          description: 创建成功
+
+  /problems/{id}:
+    get:
+      tags: [题目]
+      summary: 题目详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 题目详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [题目]
+      summary: 更新题目
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 更新成功
+    delete:
+      tags: [题目]
+      summary: 删除题目
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /problems/{id}/testcases:
+    get:
+      tags: [题目]
+      summary: 查看测试点列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 测试点列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestCase'
+    post:
+      tags: [题目]
+      summary: 批量添加测试点
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [test_cases]
+              properties:
+                test_cases:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      input_data:
+                        type: string
+                      output_data:
+                        type: string
+                      score:
+                        type: number
+      responses:
+        '200':
+          description: 添加成功
+    delete:
+      tags: [题目]
+      summary: 删除所有测试点
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /problems/{id}/testcases/{tcid}:
+    put:
+      tags: [题目]
+      summary: 更新测试点
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: tcid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 更新成功
+    delete:
+      tags: [题目]
+      summary: 删除单个测试点
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: tcid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /problems/{id}/testdata:
+    get:
+      tags: [题目]
+      summary: 查看测试点列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 测试点列表
+    post:
+      tags: [题目]
+      summary: 上传测试数据文件
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: "文件命名 name.in / name.out"
+      responses:
+        '200':
+          description: 上传成功
+
+  /problems/{id}/testdata-zip:
+    post:
+      tags: [题目]
+      summary: 上传 ZIP 测试数据
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: ".zip 文件"
+      responses:
+        '200':
+          description: 导入成功
+
+  /problems/{id}/groups:
+    get:
+      tags: [题目]
+      summary: 获取测试分组列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 分组列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestGroup'
+    post:
+      tags: [题目]
+      summary: 创建测试分组
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subtask_id]
+              properties:
+                subtask_id:
+                  type: string
+                score:
+                  type: number
+                aggregator:
+                  type: string
+                  enum: [sum, min, max, min_score, max_time, custom]
+                  default: sum
+                dependency:
+                  type: array
+                  items:
+                    type: integer
+                scoring_script:
+                  type: string
+      responses:
+        '201':
+          description: 创建成功
+
+  /problems/{id}/groups/{gid}:
+    put:
+      tags: [题目]
+      summary: 更新测试分组
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: gid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 更新成功
+    delete:
+      tags: [题目]
+      summary: 删除测试分组
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: gid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /problems/{id}/scoring-script:
+    put:
+      tags: [题目]
+      summary: 设置题目级计分脚本
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scoring_script:
+                  type: string
+      responses:
+        '200':
+          description: 更新成功
+
+  /problems/{id}/testcases/{tcid}/group:
+    put:
+      tags: [题目]
+      summary: 设置测试点所属分组
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: tcid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                group_id:
+                  type: integer
+                  nullable: true
+      responses:
+        '200':
+          description: 更新成功
+
+  /problems/{id}/solutions:
+    get:
+      tags: [题目]
+      summary: 获取题目题解列表
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 题解列表
+    post:
+      tags: [题目]
+      summary: 链接文章为题解
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [article_id]
+              properties:
+                article_id:
+                  type: integer
+                sort_order:
+                  type: integer
+                  default: 0
+                show_after_contest:
+                  type: boolean
+                  default: false
+      responses:
+        '201':
+          description: 链接成功
+    delete:
+      tags: [题目]
+      summary: 移除题解
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 移除成功
+
+  # ===== TAGS =====
+  /tags:
+    get:
+      tags: [标签]
+      summary: 标签列表
+      responses:
+        '200':
+          description: 标签列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+    post:
+      tags: [标签]
+      summary: 创建标签
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                color:
+                  type: string
+                  default: "#6366f1"
+      responses:
+        '201':
+          description: 创建成功
+
+  /tags/{id}:
+    put:
+      tags: [标签]
+      summary: 更新标签
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 更新成功
+    delete:
+      tags: [标签]
+      summary: 删除标签
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /tags/problem/{problemId}:
+    get:
+      tags: [标签]
+      summary: 获取题目标签
+      parameters:
+        - name: problemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 标签列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+    post:
+      tags: [标签]
+      summary: 设置题目标签
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: problemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tag_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: 设置成功
+
+  # ===== SUBMISSIONS =====
+  /submissions:
+    get:
+      tags: [提交]
+      summary: 提交列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+        - name: problem_id
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, running, compiling, judging, accepted, wrong_answer, time_limit_exceeded, memory_limit_exceeded, runtime_error, compile_error, system_error]
+      responses:
+        '200':
+          description: 提交列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  submissions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Submission'
+    post:
+      tags: [提交]
+      summary: 提交代码
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [problem_id, language]
+              properties:
+                problem_id:
+                  type: integer
+                language:
+                  type: string
+                source_code:
+                  type: string
+                  maxLength: 131072
+                answer_data:
+                  type: string
+      responses:
+        '201':
+          description: 提交成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  submission_id:
+                    type: integer
+                  message:
+                    type: string
+        '403':
+          description: 安全审查失败，用户被封禁
+
+  /submissions/{id}:
+    get:
+      tags: [提交]
+      summary: 提交详情
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 提交详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Submission'
+                  - type: object
+                    properties:
+                      details:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SubmissionDetail'
+    delete:
+      tags: [提交]
+      summary: 删除提交
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /submissions/{id}/detail:
+    get:
+      tags: [提交]
+      summary: 提交详细信息
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 详细信息
+
+  /submissions/{id}/rejudge:
+    post:
+      tags: [提交]
+      summary: 重测提交
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 重测成功
+
+  # ===== IDE =====
+  /ide/languages:
+    get:
+      tags: [IDE]
+      summary: 获取可用语言列表
+      responses:
+        '200':
+          description: 语言列表
+
+  /ide/run:
+    post:
+      tags: [IDE]
+      summary: 运行代码
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [language, source_code]
+              properties:
+                language:
+                  type: string
+                source_code:
+                  type: string
+                stdin:
+                  type: string
+      responses:
+        '200':
+          description: 运行结果
+
+  # ===== USERS =====
+  /users:
+    get:
+      tags: [用户]
+      summary: 用户列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [user, teacher, admin, su]
+      responses:
+        '200':
+          description: 用户列表
+    post:
+      tags: [用户]
+      summary: 创建用户
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                nickname:
+                  type: string
+                role:
+                  type: string
+                  enum: [user, teacher, admin, su]
+                  default: user
+      responses:
+        '201':
+          description: 创建成功
+
+  /users/me:
+    get:
+      tags: [用户]
+      summary: 获取当前用户信息
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 用户信息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      tags: [用户]
+      summary: 更新个人资料
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname:
+                  type: string
+                signature:
+                  type: string
+                  maxLength: 1000
+                bio:
+                  type: string
+                  description: Markdown 格式
+                hide_rating:
+                  type: boolean
+      responses:
+        '200':
+          description: 更新成功
+
+  /users/rating:
+    get:
+      tags: [用户]
+      summary: Rating 排行榜
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: 排行榜
+
+  /users/online:
+    get:
+      tags: [用户]
+      summary: 在线用户列表
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 在线用户
+
+  /users/sudo-login:
+    post:
+      tags: [用户]
+      summary: 免密登录
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id:
+                  type: integer
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /users/{id}:
+    get:
+      tags: [用户]
+      summary: 获取用户详情
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 用户详情
+    delete:
+      tags: [用户]
+      summary: 删除用户
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /users/{id}/role:
+    put:
+      tags: [用户]
+      summary: 修改角色
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role:
+                  type: string
+                  enum: [user, teacher, admin, su]
+      responses:
+        '200':
+          description: 修改成功
+
+  /users/{id}/ban:
+    post:
+      tags: [用户]
+      summary: 封禁用户
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 封禁成功
+
+  /users/{id}/unban:
+    post:
+      tags: [用户]
+      summary: 解封用户
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 解封成功
+
+  /users/{id}/force-logout:
+    post:
+      tags: [用户]
+      summary: 强制登出
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 强制登出成功
+
+  /users/{id}/reset-password:
+    post:
+      tags: [用户]
+      summary: 重置密码
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [new_password]
+              properties:
+                new_password:
+                  type: string
+                  minLength: 6
+      responses:
+        '200':
+          description: 重置成功
+
+  /users/{id}/rating:
+    put:
+      tags: [用户]
+      summary: 修改 Rating
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating]
+              properties:
+                rating:
+                  type: integer
+      responses:
+        '200':
+          description: 修改成功
+
+  # ===== LANGUAGES =====
+  /languages:
+    get:
+      tags: [语言]
+      summary: 语言列表
+      responses:
+        '200':
+          description: 语言列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Language'
+    post:
+      tags: [语言]
+      summary: 添加语言
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, display_name, run_cmd, extension]
+              properties:
+                name:
+                  type: string
+                display_name:
+                  type: string
+                compile_cmd:
+                  type: string
+                run_cmd:
+                  type: string
+                extension:
+                  type: string
+      responses:
+        '201':
+          description: 添加成功
+
+  /languages/{id}:
+    put:
+      tags: [语言]
+      summary: 更新语言
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 更新成功
+    delete:
+      tags: [语言]
+      summary: 删除语言
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  # ===== CONTESTS =====
+  /contests:
+    get:
+      tags: [比赛]
+      summary: 比赛列表
+      responses:
+        '200':
+          description: 比赛列表
+    post:
+      tags: [比赛]
+      summary: 创建比赛
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, start_time, end_time]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                start_time:
+                  type: string
+                  format: date-time
+                end_time:
+                  type: string
+                  format: date-time
+                is_virtual:
+                  type: integer
+      responses:
+        '201':
+          description: 创建成功
+
+  /contests/{id}:
+    get:
+      tags: [比赛]
+      summary: 比赛详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 比赛详情
+    put:
+      tags: [比赛]
+      summary: 更新比赛
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 更新成功
+    delete:
+      tags: [比赛]
+      summary: 删除比赛
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /contests/{id}/problems:
+    post:
+      tags: [比赛]
+      summary: 添加题目到比赛
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [problem_id]
+              properties:
+                problem_id:
+                  type: integer
+                alias:
+                  type: string
+                sort_order:
+                  type: integer
+                  default: 0
+      responses:
+        '201':
+          description: 添加成功
+
+  /contests/{id}/problems/{pid}:
+    delete:
+      tags: [比赛]
+      summary: 从比赛中移除题目
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: pid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 移除成功
+
+  /contests/{id}/invite:
+    post:
+      tags: [比赛]
+      summary: 邀请用户参赛
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id:
+                  type: integer
+      responses:
+        '200':
+          description: 邀请成功
+
+  /contests/{id}/join:
+    post:
+      tags: [比赛]
+      summary: 加入比赛
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 加入成功
+
+  /contests/{id}/participants:
+    get:
+      tags: [比赛]
+      summary: 参赛用户列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 参赛用户列表
+
+  /contests/{id}/participants/{uid}:
+    delete:
+      tags: [比赛]
+      summary: 移除参赛用户
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 移除成功
+
+  /contests/{id}/leaderboard:
+    get:
+      tags: [比赛]
+      summary: 比赛排行榜
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 排行榜
+
+  # ===== ARTICLES =====
+  /articles:
+    get:
+      tags: [文章]
+      summary: 文章列表
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: 文章列表
+    post:
+      tags: [文章]
+      summary: 发布文章
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                  description: Markdown 格式
+                provider:
+                  type: string
+                is_published:
+                  type: integer
+                  enum: [0, 1]
+                  default: 0
+      responses:
+        '201':
+          description: 发布成功
+
+  /articles/{id}:
+    get:
+      tags: [文章]
+      summary: 文章详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 文章详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+    put:
+      tags: [文章]
+      summary: 编辑文章
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 编辑成功
+    delete:
+      tags: [文章]
+      summary: 删除文章
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  # ===== UPLOADS =====
+  /uploads:
+    get:
+      tags: [文件]
+      summary: 文件列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: 文件列表
+    post:
+      tags: [文件]
+      summary: 上传文件
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: "最大 10MB"
+      responses:
+        '201':
+          description: 上传成功
+
+  /uploads/{filename}:
+    get:
+      tags: [文件]
+      summary: 访问文件
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 文件内容
+
+  /uploads/{id}:
+    delete:
+      tags: [文件]
+      summary: 删除文件
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  # ===== STATS =====
+  /stats:
+    get:
+      tags: [统计]
+      summary: 首页统计数据
+      responses:
+        '200':
+          description: 统计数据
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'

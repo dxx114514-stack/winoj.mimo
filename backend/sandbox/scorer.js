@@ -5,6 +5,19 @@ class Scorer {
     this.pos = 0;
   }
 
+  getLineCol(pos) {
+    let line = 1, col = 1;
+    for (let i = 0; i < pos && i < this.script.length; i++) {
+      if (this.script[i] === '\n') { line++; col = 1; } else { col++; }
+    }
+    return { line, col };
+  }
+
+  err(msg) {
+    const { line, col } = this.getLineCol(this.pos);
+    return new Error(`${msg} at line ${line}, col ${col}`);
+  }
+
   run(context) {
     this.vars = {};
     for (const [k, v] of Object.entries(context)) this.vars[k] = v;
@@ -45,7 +58,7 @@ class Scorer {
     return false;
   }
 
-  expect(s) { if (!this.eat(s)) throw new Error(`Expected "${s}" at pos ${this.pos}`); }
+  expect(s) { if (!this.eat(s)) throw this.err(`Expected "${s}"`); }
 
   // ===== Block / Statement =====
   parseBlock() {
@@ -98,7 +111,11 @@ class Scorer {
   parseCondExpr() { return this.cOr(); }
   cOr() { let l = this.cAnd(); while (this.match('or')) { this.eat('or'); const r = this.cAnd(); l = (l || r) ? 1 : 0; } return l; }
   cAnd() { let l = this.cNot(); while (this.match('and')) { this.eat('and'); const r = this.cNot(); l = (l && r) ? 1 : 0; } return l; }
-  cNot() { if (this.match('not')) { this.eat('not'); return this.cNot() ? 0 : 1; } return this.cCmp(); }
+  cNot() {
+    if (this.match('not')) { this.eat('not'); return this.cNot() ? 0 : 1; }
+    if (this.eat('(')) { const v = this.parseCondExpr(); this.expect(')'); return v; }
+    return this.cCmp();
+  }
 
   cCmp() {
     let l = this.parseArith();
@@ -134,8 +151,8 @@ class Scorer {
     while (true) {
       this.skipWs();
       if (this.eat('*')) l *= this.aUnary();
-      else if (this.eat('/')) { const r = this.aUnary(); l = r ? Math.trunc(l / r) : 0; }
-      else if (this.eat('%')) { const r = this.aUnary(); l = r ? l % r : 0; }
+      else if (this.eat('/')) { const r = this.aUnary(); if (r === 0) throw this.err('Division by zero'); l = Math.trunc(l / r); }
+      else if (this.eat('%')) { const r = this.aUnary(); if (r === 0) throw this.err('Modulo by zero'); l = l % r; }
       else break;
     }
     return l;
@@ -147,12 +164,21 @@ class Scorer {
     if (this.script[this.pos] === '@') return this.vars[this.parseVar()] || 0;
     const KW = { AC: 1, WA: 2, TLE: 3, MLE: 4, UNAC: 2 };
     for (const [k, v] of Object.entries(KW)) { if (this.match(k)) { this.eat(k); return v; } }
+    return this.pFuncOrNum();
+  }
+
+  pFuncOrNum() {
+    this.skipWs();
+    if (this.match('min')) { this.eat('min'); this.expect('('); const a = this.parseArith(); this.expect(','); const b = this.parseArith(); this.expect(')'); return Math.min(a, b); }
+    if (this.match('max')) { this.eat('max'); this.expect('('); const a = this.parseArith(); this.expect(','); const b = this.parseArith(); this.expect(')'); return Math.max(a, b); }
+    if (this.match('abs')) { this.eat('abs'); this.expect('('); const a = this.parseArith(); this.expect(')'); return Math.abs(a); }
+    if (this.script[this.pos] === '@') return this.vars[this.parseVar()] || 0;
     return this.pNum();
   }
 
   parseVar() {
     this.skipWs();
-    if (this.script[this.pos] !== '@') throw new Error(`Expected @ at pos ${this.pos}`);
+    if (this.script[this.pos] !== '@') throw this.err('Expected variable (@name)');
     let n = '@'; this.pos++;
     while (this.pos < this.script.length && /[a-zA-Z0-9_]/.test(this.script[this.pos])) { n += this.script[this.pos]; this.pos++; }
     return n;
@@ -162,7 +188,7 @@ class Scorer {
     this.skipWs();
     let s = '';
     while (this.pos < this.script.length && /[0-9]/.test(this.script[this.pos])) { s += this.script[this.pos]; this.pos++; }
-    if (!s) throw new Error(`Expected number at pos ${this.pos}`);
+    if (!s) throw this.err('Expected number');
     return parseInt(s, 10);
   }
 }

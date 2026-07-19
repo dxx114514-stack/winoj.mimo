@@ -1,4 +1,8 @@
 (function() {
+  const savedTheme = localStorage.getItem('winoj_theme') || 'light';
+  if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+  else document.documentElement.classList.remove('dark');
+
   const style = document.createElement('style');
   style.textContent = `
     .prose { text-align: left !important; }
@@ -8,6 +12,15 @@
   `;
   document.head.appendChild(style);
 })();
+
+function toggleDarkMode() {
+  const html = document.documentElement;
+  const isDark = html.classList.toggle('dark');
+  localStorage.setItem('winoj_theme', isDark ? 'dark' : 'light');
+  document.querySelectorAll('.dark-toggle-icon').forEach(icon => {
+    icon.classList.toggle('hidden');
+  });
+}
 
 const API_BASE = '/api/v1';
 
@@ -110,19 +123,19 @@ function escapeHtml(s) {
 
 function statusColor(status) {
   const colors = {
-    accepted: 'text-green-600 bg-green-50',
-    wrong_answer: 'text-red-600 bg-red-50',
-    time_limit_exceeded: 'text-orange-600 bg-orange-50',
-    memory_limit_exceeded: 'text-purple-600 bg-purple-50',
-    runtime_error: 'text-red-600 bg-red-50',
-    compile_error: 'text-yellow-600 bg-yellow-50',
-    system_error: 'text-gray-600 bg-gray-50',
-    pending: 'text-blue-600 bg-blue-50',
-    running: 'text-blue-600 bg-blue-50',
-    judging: 'text-blue-600 bg-blue-50',
-    compiling: 'text-blue-600 bg-blue-50',
+    accepted: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30',
+    wrong_answer: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30',
+    time_limit_exceeded: 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30',
+    memory_limit_exceeded: 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30',
+    runtime_error: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30',
+    compile_error: 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30',
+    system_error: 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700',
+    pending: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
+    running: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
+    judging: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
+    compiling: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
   };
-  return colors[status] || 'text-gray-600 bg-gray-50';
+  return colors[status] || 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700';
 }
 
 function statusText(status) {
@@ -145,10 +158,10 @@ function statusText(status) {
 
 function roleBadge(role) {
   const badges = {
-    user: '<span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">用户</span>',
-    teacher: '<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">教师</span>',
-    admin: '<span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-700">管理员</span>',
-    su: '<span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">超级管理员</span>',
+    user: '<span class="px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">用户</span>',
+    teacher: '<span class="px-2 py-1 text-xs rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">教师</span>',
+    admin: '<span class="px-2 py-1 text-xs rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">管理员</span>',
+    su: '<span class="px-2 py-1 text-xs rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">超级管理员</span>',
   };
   return badges[role] || '';
 }
@@ -159,39 +172,46 @@ function renderNav(activePage) {
     const isAdmin = user && ['admin', 'su'].includes(user.role);
     const isTeacher = user && ['teacher', 'admin', 'su'].includes(user.role);
 
+    const isDark = document.documentElement.classList.contains('dark');
+    const sunIcon = `<svg class="w-5 h-5 dark-toggle-icon ${isDark ? 'hidden' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`;
+    const moonIcon = `<svg class="w-5 h-5 dark-toggle-icon ${isDark ? '' : 'hidden'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
+
     return `
-    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-14">
           <div class="flex items-center space-x-8">
             <a href="/pages/index.html" class="flex items-center space-x-2">
               <svg class="w-7 h-7 text-indigo-600" fill="currentColor" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
-              <span class="text-xl font-bold text-gray-900">WinOJ</span>
+              <span class="text-xl font-bold text-gray-900 dark:text-white">WinOJ</span>
             </a>
             <div class="hidden md:flex space-x-1">
-              <a href="/pages/problems.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='problems'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">题库</a>
-              <a href="/pages/submissions.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='submissions'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">提交记录</a>
-              <a href="/pages/articles.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='articles'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">文章</a>
-              <a href="/pages/ide.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='ide'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">在线编程</a>
-              <a href="/pages/upload.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='upload'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">图床</a>
-              <a href="/pages/rating.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='rating'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">排行</a>
-              <a href="/pages/contests.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='contests'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">比赛</a>
-              ${isTeacher ? `<a href="/pages/admin.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='admin'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">管理</a>` : ''}
-              ${isAdmin ? `<a href="/pages/languages.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='languages'?'bg-indigo-50 text-indigo-700':'text-gray-600 hover:bg-gray-50'}">语言</a>` : ''}
+              <a href="/pages/problems.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='problems'?'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300':'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}">题库</a>
+              <a href="/pages/submissions.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='submissions'?'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300':'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}">提交记录</a>
+              <a href="/pages/articles.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='articles'?'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300':'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}">文章</a>
+              <a href="/pages/ide.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='ide'?'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300':'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}">在线编程</a>
+              <a href="/pages/upload.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='upload'?'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300':'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}">图床</a>
+              <a href="/pages/rating.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='rating'?'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300':'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}">排行</a>
+              <a href="/pages/contests.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='contests'?'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300':'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}">比赛</a>
+              ${isTeacher ? `<a href="/pages/admin.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='admin'?'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300':'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}">管理</a>` : ''}
+              ${isAdmin ? `<a href="/pages/languages.html" class="px-3 py-2 rounded-md text-sm font-medium ${activePage==='languages'?'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300':'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}">语言</a>` : ''}
             </div>
           </div>
           <div class="flex items-center space-x-4">
+            <button onclick="toggleDarkMode()" class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="切换主题">
+              ${sunIcon}${moonIcon}
+            </button>
             ${user ? `
               <div class="flex items-center space-x-3">
-                <span class="text-sm text-gray-700">${escapeHtml(user.nickname || user.username || '')}</span>
-                <span class="px-1.5 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-700">R:${user.rating || 1500}</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300">${escapeHtml(user.nickname || user.username || '')}</span>
+                <span class="px-1.5 py-0.5 text-xs rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">R:${user.rating || 1500}</span>
                 ${roleBadge(user.role)}
-                <a href="/pages/profile.html" class="text-sm text-gray-500 hover:text-gray-700">资料</a>
-                <button onclick="showPasswordModal()" class="text-sm text-gray-500 hover:text-gray-700">设置</button>
-                <button onclick="logout()" class="text-sm text-red-600 hover:text-red-800">退出</button>
+                <a href="/pages/profile.html" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">资料</a>
+                <button onclick="showPasswordModal()" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">设置</button>
+                <button onclick="logout()" class="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">退出</button>
               </div>
             ` : `
-              <a href="/pages/login.html" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">登录</a>
+              <a href="/pages/login.html" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">登录</a>
               <a href="/pages/register.html" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 font-medium">注册</a>
             `}
           </div>
@@ -199,12 +219,12 @@ function renderNav(activePage) {
       </div>
     </nav>
     <div id="passwordModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-        <h3 class="text-lg font-semibold mb-4">修改密码</h3>
-        <input id="oldPwd" type="password" placeholder="当前密码" class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-        <input id="newPwd" type="password" placeholder="新密码" class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-md">
+        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">修改密码</h3>
+        <input id="oldPwd" type="password" placeholder="当前密码" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg mb-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        <input id="newPwd" type="password" placeholder="新密码" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg mb-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
         <div class="flex justify-end space-x-3">
-          <button onclick="closePasswordModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">取消</button>
+          <button onclick="closePasswordModal()" class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">取消</button>
           <button onclick="changePassword()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">保存</button>
         </div>
       </div>

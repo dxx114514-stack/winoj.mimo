@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>在线编程 - WinOJ</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class'}</script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
@@ -16,7 +17,7 @@
     .CodeMirror-code { text-align: left !important; }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
   <div id="nav"></div>
   <div class="max-w-6xl mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold text-gray-900 mb-6">在线编程</h1>
@@ -55,6 +56,7 @@
     document.getElementById('nav').innerHTML = renderNav('ide');
     let editor;
     const langModes = { c: 'text/x-csrc', cpp: 'text/x-c++src', python3: 'text/x-python', java: 'text/x-java', javascript: 'text/javascript' };
+    if (!getToken()) { window.location.href = '/pages/login.html'; return; }
     async function init() {
       editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
         lineNumbers: true, mode: 'text/x-csrc', theme: 'default', indentUnit: 4, tabSize: 4
