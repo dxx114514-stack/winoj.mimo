@@ -84,17 +84,10 @@
       const errDiv = document.getElementById('error');
       btn.disabled = true; btn.textContent = '提交中...';
       errDiv.classList.add('hidden');
-      const selectedLang = document.getElementById('language').value;
       try {
-        const user = getUser();
-        if (user && user.preferred_language !== selectedLang) {
-          user.preferred_language = selectedLang;
-          setUser(user);
-          apiCall('PUT', '/users/me', { preferred_language: selectedLang }).catch(() => {});
-        }
         const data = await apiCall('POST', '/submissions', {
           problem_id: parseInt(pid) || 0,
-          language: selectedLang,
+          language: document.getElementById('language').value,
           source_code: editor.getValue()
         });
         window.location.href = `/pages/submission.html?id=${data.submission_id}`;

@@ -80,13 +80,6 @@
       const btn = document.getElementById('runBtn');
       const output = document.getElementById('output');
       btn.disabled = true; btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg><span>运行中...</span>';
-      const selectedLang = document.getElementById('language').value;
-      const user = getUser();
-      if (user && user.preferred_language !== selectedLang) {
-        user.preferred_language = selectedLang;
-        setUser(user);
-        apiCall('PUT', '/users/me', { preferred_language: selectedLang }).catch(() => {});
-      }
       output.className = 'bg-gray-900 text-gray-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
       output.textContent = '运行中...';
       document.getElementById('runInfo').classList.add('hidden');
