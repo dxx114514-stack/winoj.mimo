@@ -18,7 +18,7 @@
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
   <div id="nav"></div>
   <div class="max-w-5xl mx-auto px-4 py-8">
-    <div id="content" class="text-center py-12 text-gray-400">加载中...</div>
+    <div id="content" class="text-center py-12 text-gray-400 dark:text-gray-500">加载中...</div>
   </div>
   <script>
     document.getElementById('nav').innerHTML = renderNav('submissions');
@@ -58,22 +58,22 @@
         if (s.details && s.details.length > 0) {
           detailsHtml = `
             <div class="mt-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-3">测试点详情</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">测试点详情</h3>
               <div class="space-y-2">
                 ${s.details.map((d, i) => {
                   let detailDesc = '';
                   if (d.status === 'runtime_error') detailDesc = `<div class="text-xs text-red-500 mt-1 ml-6">退出码: ${d.exit_code}${d.stderr ? ' — ' + escapeHtml(d.stderr.slice(0, 200)) : ''}</div>`;
                   else if (d.status === 'time_limit_exceeded') detailDesc = `<div class="text-xs text-orange-500 mt-1 ml-6">耗时 ${d.time_used}ms 超出时限</div>`;
                   else if (d.status === 'wrong_answer') detailDesc = `<div class="text-xs text-red-400 mt-1 ml-6">输出与期望不一致${d.stdout ? '（收到: ' + escapeHtml(d.stdout.slice(0, 100)) + '）' : ''}</div>`;
-                  else if (d.status === 'compile_error') detailDesc = `<div class="text-xs text-yellow-600 mt-1 ml-6 whitespace-pre-wrap">${escapeHtml((d.stderr || '').slice(0, 300))}</div>`;
+                  else if (d.status === 'compile_error') detailDesc = `<div class="text-xs text-yellow-600 dark:text-yellow-400 mt-1 ml-6 whitespace-pre-wrap">${escapeHtml((d.stderr || '').slice(0, 300))}</div>`;
                   return `
-                    <div class="p-3 bg-gray-50 rounded-xl">
+                    <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
                       <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
-                          <span class="text-sm font-medium text-gray-700">测试点 #${i+1}</span>
+                          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">测试点 #${i+1}</span>
                           <span class="px-2 py-0.5 text-xs rounded-full ${statusColor(d.status)}">${statusText(d.status)}</span>
                         </div>
-                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                        <div class="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
                           <span>得分: ${d.score}</span>
                           <span>耗时: ${d.time_used}ms</span>
                           <span>内存: ${d.memory_used}KB</span>
@@ -89,14 +89,14 @@
         }
 
         document.getElementById('content').innerHTML = `
-          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6">
             <div class="flex items-center justify-between mb-6">
               <div>
-                <h1 class="text-2xl font-bold text-gray-900">提交 #${s.id}</h1>
-                <div class="flex items-center space-x-3 mt-2 text-sm text-gray-500">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">提交 #${s.id}</h1>
+                <div class="flex items-center space-x-3 mt-2 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
                   <span>用户: ${escapeHtml(s.username||'-')}</span>
                   <span>|</span>
-                  <a href="/pages/problem.html?id=${s.problem_id}" class="text-indigo-600 hover:text-indigo-800">${escapeHtml(s.problem_title||'未知')}</a>
+                  <a href="/pages/problem.html?id=${s.problem_id}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800">${escapeHtml(s.problem_title||'未知')}</a>
                   <span>|</span>
                   <span>${s.language}</span>
                   <span>|</span>
@@ -105,31 +105,31 @@
               </div>
               <div class="flex items-center space-x-3">
                 <span class="px-4 py-2 text-sm rounded-full font-semibold ${statusColor(s.status)}">${statusText(s.status)}</span>
-                ${isTeacher ? `<button onclick="rejudge(${s.id})" class="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 font-semibold">重测</button>` : ''}
+                ${isTeacher ? `<button onclick="rejudge(${s.id})" class="px-4 py-2 bg-orange-50 dark:bg-orange-900/300 text-white text-sm rounded-xl hover:bg-orange-600 font-semibold">重测</button>` : ''}
               </div>
             </div>
 
-            <div class="p-3 mb-4 rounded-xl text-sm ${s.status === 'accepted' ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-600'}">
+            <div class="p-3 mb-4 rounded-xl text-sm ${s.status === 'accepted' ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400 dark:text-gray-500'}">
               ${statusDesc}
             </div>
 
             <div class="grid grid-cols-3 gap-4 mb-6">
-              <div class="bg-gray-50 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-gray-900">${s.score}</div><div class="text-sm text-gray-500">得分</div></div>
-              <div class="bg-gray-50 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-gray-900">${s.time_used}ms</div><div class="text-sm text-gray-500">耗时</div></div>
-              <div class="bg-gray-50 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-gray-900">${s.memory_used}KB</div><div class="text-sm text-gray-500">内存</div></div>
+              <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-gray-900 dark:text-white">${s.score}</div><div class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">得分</div></div>
+              <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-gray-900 dark:text-white">${s.time_used}ms</div><div class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">耗时</div></div>
+              <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center"><div class="text-2xl font-bold text-gray-900 dark:text-white">${s.memory_used}KB</div><div class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">内存</div></div>
             </div>
 
             ${s.source_code && s.source_code !== '[HIDDEN]' ? `
             <div class="mb-4">
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">源代码</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">源代码</h3>
               <textarea id="codeArea">${escapeHtml(s.source_code)}</textarea>
             </div>
             ` : ''}
 
             ${s.compile_output ? `
             <div class="mb-4">
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">编译输出</h3>
-              <pre class="bg-red-50 text-red-700 p-4 rounded-xl text-sm overflow-x-auto whitespace-pre-wrap">${escapeHtml(s.compile_output)}</pre>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">编译输出</h3>
+              <pre class="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded-xl text-sm overflow-x-auto whitespace-pre-wrap">${escapeHtml(s.compile_output)}</pre>
             </div>
             ` : ''}
 

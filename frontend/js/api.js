@@ -182,7 +182,7 @@ function renderNav(activePage) {
         <div class="flex justify-between h-14">
           <div class="flex items-center space-x-8">
             <a href="/pages/index.html" class="flex items-center space-x-2">
-              <svg class="w-7 h-7 text-indigo-600" fill="currentColor" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+              <svg class="w-7 h-7 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
               <span class="text-xl font-bold text-gray-900 dark:text-white">WinOJ</span>
             </a>
             <div class="hidden md:flex space-x-1">
@@ -231,7 +231,7 @@ function renderNav(activePage) {
     </div>`;
   } catch(e) {
     console.error('renderNav error:', e);
-    return `<nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50"><div class="max-w-7xl mx-auto px-4 h-14 flex items-center"><a href="/pages/index.html" class="text-xl font-bold text-gray-900">WinOJ</a></div></nav>`;
+    return `<nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50"><div class="max-w-7xl mx-auto px-4 h-14 flex items-center"><a href="/pages/index.html" class="text-xl font-bold text-gray-900 dark:text-white">WinOJ</a></div></nav>`;
   }
 }
 

@@ -14,7 +14,7 @@
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
   <div id="nav"></div>
   <div class="max-w-4xl mx-auto px-4 py-8">
-    <div id="content" class="text-center py-12 text-gray-400">加载中...</div>
+    <div id="content" class="text-center py-12 text-gray-400 dark:text-gray-500">加载中...</div>
   </div>
   <script>
     document.getElementById('nav').innerHTML = renderNav('problems');
@@ -34,28 +34,28 @@
         } catch {}
 
         document.getElementById('content').innerHTML = `
-          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-8">
             <div class="flex items-start justify-between mb-6">
               <div>
-                <h1 class="text-3xl font-bold text-gray-900">${escapeHtml(p.title)}</h1>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white">${escapeHtml(p.title)}</h1>
                 <div class="flex flex-wrap gap-2 mt-3">
                   ${tagsHtml}
-                  <span class="px-3 py-1 text-xs rounded-full bg-blue-50 text-blue-700">${p.problem_type === 'traditional' ? '传统题' : p.problem_type === 'interactive' ? '交互题' : p.problem_type === 'submit_answer' ? '提交答案' : p.problem_type}</span>
-                  <span class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">时限: ${p.time_limit}ms</span>
-                  <span class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">内存: ${p.memory_limit}MB</span>
-                  ${p.provider ? `<span class="px-3 py-1 text-xs rounded-full bg-purple-50 text-purple-700">提供者: ${escapeHtml(p.provider)}</span>` : ''}
+                  <span class="px-3 py-1 text-xs rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">${p.problem_type === 'traditional' ? '传统题' : p.problem_type === 'interactive' ? '交互题' : p.problem_type === 'submit_answer' ? '提交答案' : p.problem_type}</span>
+                  <span class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600 dark:text-gray-400 dark:text-gray-500">时限: ${p.time_limit}ms</span>
+                  <span class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600 dark:text-gray-400 dark:text-gray-500">内存: ${p.memory_limit}MB</span>
+                  ${p.provider ? `<span class="px-3 py-1 text-xs rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">提供者: ${escapeHtml(p.provider)}</span>` : ''}
                 </div>
               </div>
               <a href="/pages/submit.html?id=${p.id}" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition whitespace-nowrap">提交</a>
             </div>
             <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">题目描述</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">题目描述</h3>
               ${renderMarkdown(p.description)}
             </div>
-            ${p.input_desc ? `<div class="mb-6"><h3 class="text-lg font-semibold text-gray-900 mb-2">输入格式</h3>${renderMarkdown(p.input_desc)}</div>` : ''}
-            ${p.output_desc ? `<div class="mb-6"><h3 class="text-lg font-semibold text-gray-900 mb-2">输出格式</h3>${renderMarkdown(p.output_desc)}</div>` : ''}
-            ${p.hint ? `<div class="mb-6"><h3 class="text-lg font-semibold text-gray-900 mb-2">提示</h3>${renderMarkdown(p.hint)}</div>` : ''}
-            <div class="mt-6 pt-6 border-t border-gray-200 text-sm text-gray-500">
+            ${p.input_desc ? `<div class="mb-6"><h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">输入格式</h3>${renderMarkdown(p.input_desc)}</div>` : ''}
+            ${p.output_desc ? `<div class="mb-6"><h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">输出格式</h3>${renderMarkdown(p.output_desc)}</div>` : ''}
+            ${p.hint ? `<div class="mb-6"><h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">提示</h3>${renderMarkdown(p.hint)}</div>` : ''}
+            <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
               测试点: ${p.test_cases_count || 0}
             </div>
           </div>
@@ -66,10 +66,10 @@
           const sols = await apiCall('GET', `/problems/${pid}/solutions`);
           if (sols.length > 0) {
             const solHtml = sols.map(s => `
-              <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-4">
+              <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6 mt-4">
                 <div class="flex items-center justify-between mb-3">
-                  <h3 class="text-lg font-semibold text-gray-900">📝 题解: ${escapeHtml(s.article_title || '未命名')}</h3>
-                  <a href="/pages/article.html?id=${s.article_id}" class="text-indigo-600 text-sm hover:underline">查看完整文章</a>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">📝 题解: ${escapeHtml(s.article_title || '未命名')}</h3>
+                  <a href="/pages/article.html?id=${s.article_id}" class="text-indigo-600 dark:text-indigo-400 text-sm hover:underline">查看完整文章</a>
                 </div>
                 <div id="sol-${s.id}">${renderMarkdown((s.article_content || '').slice(0, 500))}${(s.article_content || '').length > 500 ? '...' : ''}</div>
               </div>

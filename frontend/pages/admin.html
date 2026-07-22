@@ -18,14 +18,14 @@
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
   <div id="nav"></div>
   <div class="max-w-7xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold text-gray-900 mb-6">管理面板</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">管理面板</h1>
     <div class="flex space-x-2 mb-6">
       <button onclick="showTab('problems')" id="tab-problems" class="px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white">题目管理</button>
-      <button onclick="showTab('users')" id="tab-users" class="px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">用户管理</button>
-      <button onclick="showTab('online')" id="tab-online" class="px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">在线用户</button>
-      <button onclick="showTab('articles')" id="tab-articles" class="px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">文章管理</button>
-      <button onclick="showTab('files')" id="tab-files" class="px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">文件管理</button>
-      <button onclick="showTab('contests')" id="tab-contests" class="px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">比赛管理</button>
+      <button onclick="showTab('users')" id="tab-users" class="px-4 py-2 rounded-xl text-sm font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-700">用户管理</button>
+      <button onclick="showTab('online')" id="tab-online" class="px-4 py-2 rounded-xl text-sm font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-700">在线用户</button>
+      <button onclick="showTab('articles')" id="tab-articles" class="px-4 py-2 rounded-xl text-sm font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-700">文章管理</button>
+      <button onclick="showTab('files')" id="tab-files" class="px-4 py-2 rounded-xl text-sm font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-700">文件管理</button>
+      <button onclick="showTab('contests')" id="tab-contests" class="px-4 py-2 rounded-xl text-sm font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-700">比赛管理</button>
     </div>
 
     <div id="panel-problems">
@@ -34,71 +34,71 @@
         <button onclick="showCreateProblem()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700">+ 新建题目</button>
       </div>
 
-      <div id="createProblemForm" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
+      <div id="createProblemForm" class="hidden bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6 mb-4">
         <h3 class="font-semibold mb-3" id="problemFormTitle">新建题目</h3>
         <div class="grid grid-cols-2 gap-4 mb-4">
-          <input id="pTitle" placeholder="题目标题" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
-          <select id="pType" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input id="pTitle" placeholder="题目标题" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <select id="pType" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
             <option value="traditional">传统题</option>
             <option value="interactive">交互题</option>
             <option value="communication">通信题</option>
             <option value="submit_answer">提交答案</option>
           </select>
-          <input id="pTimeLimit" type="number" value="1000" placeholder="时限 (ms)" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
-          <input id="pMemLimit" type="number" value="256" placeholder="内存限制 (MB)" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
-          <select id="pCompare" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input id="pTimeLimit" type="number" value="1000" placeholder="时限 (ms)" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input id="pMemLimit" type="number" value="256" placeholder="内存限制 (MB)" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <select id="pCompare" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
             <option value="text_strict">严格比较</option>
             <option value="text_relaxed">宽松比较</option>
             <option value="real_number">浮点比较</option>
             <option value="spj">Special Judge</option>
           </select>
-          <select id="pSubtask" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <select id="pSubtask" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
             <option value="simple">简单模式</option>
             <option value="advanced">分组模式</option>
           </select>
         </div>
-        <textarea id="pDesc" rows="3" placeholder="题目描述（支持 Markdown 和 KaTeX 公式）" class="w-full px-3 py-2 border border-gray-300 rounded-xl mb-3 text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
-        <textarea id="pInput" rows="2" placeholder="输入格式" class="w-full px-3 py-2 border border-gray-300 rounded-xl mb-3 text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
-        <textarea id="pOutput" rows="2" placeholder="输出格式" class="w-full px-3 py-2 border border-gray-300 rounded-xl mb-3 text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
-        <input id="pProvider" placeholder="提供者（选填）" class="w-full px-3 py-2 border border-gray-300 rounded-xl mb-3 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+        <textarea id="pDesc" rows="3" placeholder="题目描述（支持 Markdown 和 KaTeX 公式）" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl mb-3 text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
+        <textarea id="pInput" rows="2" placeholder="输入格式" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl mb-3 text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
+        <textarea id="pOutput" rows="2" placeholder="输出格式" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl mb-3 text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
+        <input id="pProvider" placeholder="提供者（选填）" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl mb-3 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
         <div class="flex justify-end space-x-3">
-          <button onclick="hideCreateProblem()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl">取消</button>
+          <button onclick="hideCreateProblem()" class="px-4 py-2 text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl">取消</button>
           <button onclick="saveProblem()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700" id="problemSaveBtn">创建</button>
         </div>
       </div>
 
-      <div id="testManager" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
+      <div id="testManager" class="hidden bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6 mb-4">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-semibold" id="testManagerTitle">测试点管理</h3>
-          <button onclick="hideTestManager()" class="text-sm text-gray-500 hover:text-gray-700">关闭</button>
+          <button onclick="hideTestManager()" class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300">关闭</button>
         </div>
 
-        <div class="mb-4 p-3 bg-blue-50 rounded-xl text-sm text-blue-700">
+        <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-sm text-blue-700 dark:text-blue-300">
           <strong>变量说明:</strong> @statusX (AC=1,WA=2,TLE=3,MLE=4), @scoreX, @timeX, @memoryX, @total_score, @final_status, @final_time, @final_memory
         </div>
 
         <div id="groupsSection" class="mb-4">
           <div class="flex items-center justify-between mb-2">
-            <h4 class="text-sm font-semibold text-gray-700">测试分组 (Subtask)</h4>
-            <button onclick="showGroupEditor()" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200">+ 添加分组</button>
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">测试分组 (Subtask)</h4>
+            <button onclick="showGroupEditor()" class="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200">+ 添加分组</button>
           </div>
           <div id="groupsList" class="space-y-2"></div>
         </div>
 
-        <div id="groupEditor" class="hidden mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+        <div id="groupEditor" class="hidden mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700">
           <h4 class="text-sm font-semibold mb-3" id="groupEditorTitle">添加分组</h4>
           <div class="grid grid-cols-2 gap-3 mb-3">
             <div>
-              <label class="text-xs text-gray-500">Subtask ID</label>
-              <input id="gSubtaskId" type="text" placeholder="如 st1" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+              <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Subtask ID</label>
+              <input id="gSubtaskId" type="text" placeholder="如 st1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             </div>
             <div>
-              <label class="text-xs text-gray-500">满分</label>
-              <input id="gScore" type="number" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+              <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">满分</label>
+              <input id="gScore" type="number" value="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             </div>
             <div>
-              <label class="text-xs text-gray-500">聚合方式</label>
-              <select id="gAggregator" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+              <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">聚合方式</label>
+              <select id="gAggregator" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                 <option value="sum">求和 (sum)</option>
                 <option value="min">取最小 (min)</option>
                 <option value="max">取最大 (max)</option>
@@ -108,38 +108,38 @@
               </select>
             </div>
             <div>
-              <label class="text-xs text-gray-500">依赖分组 ID (逗号分隔)</label>
-              <input id="gDependency" type="text" placeholder="如 1,2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+              <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">依赖分组 ID (逗号分隔)</label>
+              <input id="gDependency" type="text" placeholder="如 1,2" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             </div>
           </div>
           <div class="mb-3">
-            <label class="text-xs text-gray-500">计分脚本 (留空则默认聚合)</label>
-            <textarea id="gScript" rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="if @status1==AC; then&#10;  @total_score = 30;&#10;  @final_status = AC;&#10;  @final_time = @time1;&#10;  @final_memory = @memory1;&#10;else&#10;  @total_score = 0;&#10;  @final_status = UNAC;&#10;fi"></textarea>
+            <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">计分脚本 (留空则默认聚合)</label>
+            <textarea id="gScript" rows="5" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="if @status1==AC; then&#10;  @total_score = 30;&#10;  @final_status = AC;&#10;  @final_time = @time1;&#10;  @final_memory = @memory1;&#10;else&#10;  @total_score = 0;&#10;  @final_status = UNAC;&#10;fi"></textarea>
           </div>
           <div class="flex justify-end space-x-2">
-            <button onclick="hideGroupEditor()" class="px-3 py-1.5 text-gray-600 text-sm hover:bg-gray-200 rounded-lg">取消</button>
+            <button onclick="hideGroupEditor()" class="px-3 py-1.5 text-gray-600 dark:text-gray-400 dark:text-gray-500 text-sm hover:bg-gray-200 rounded-lg">取消</button>
             <button onclick="saveGroup()" class="px-4 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700" id="groupSaveBtn">保存</button>
           </div>
         </div>
 
         <div class="mb-4">
           <div class="flex items-center justify-between mb-2">
-            <h4 class="text-sm font-semibold text-gray-700">题目级计分脚本</h4>
-            <button onclick="toggleProblemScript()" class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200" id="probScriptBtn">展开</button>
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">题目级计分脚本</h4>
+            <button onclick="toggleProblemScript()" class="text-xs px-2 py-1 bg-gray-100 text-gray-600 dark:text-gray-400 dark:text-gray-500 rounded-lg hover:bg-gray-200" id="probScriptBtn">展开</button>
           </div>
           <div id="problemScriptWrap" class="hidden">
-            <textarea id="problemScript" class="w-full px-3 py-2 border border-gray-300 rounded-xl font-mono text-sm text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none" rows="6" placeholder="if @status1==AC; then&#10;  @total_score = 100;&#10;  @final_status = AC;&#10;fi"></textarea>
+            <textarea id="problemScript" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl font-mono text-sm text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none" rows="6" placeholder="if @status1==AC; then&#10;  @total_score = 100;&#10;  @final_status = AC;&#10;fi"></textarea>
             <button onclick="saveProblemScript()" class="mt-2 px-3 py-1 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">保存脚本</button>
           </div>
         </div>
 
         <div>
           <div class="flex items-center justify-between mb-2">
-            <h4 class="text-sm font-semibold text-gray-700">测试点列表</h4>
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">测试点列表</h4>
             <div class="flex space-x-2">
-              <button onclick="addTestCase()" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200">+ 添加测试点</button>
-              <button onclick="batchAddTestCases()" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">批量添加</button>
-              <label class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 cursor-pointer">
+              <button onclick="addTestCase()" class="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200">+ 添加测试点</button>
+              <button onclick="batchAddTestCases()" class="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200">批量添加</button>
+              <label class="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/30 cursor-pointer">
                 上传ZIP
                 <input id="zipInput" type="file" accept=".zip" class="hidden" onchange="uploadZip(this.files[0])">
               </label>
@@ -148,72 +148,72 @@
           <div id="testCasesList" class="space-y-2"></div>
         </div>
 
-        <div id="tcEditor" class="hidden mt-4 p-4 bg-gray-50 rounded-xl">
+        <div id="tcEditor" class="hidden mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
           <h4 class="text-sm font-semibold mb-2" id="tcEditorTitle">编辑测试点</h4>
           <div class="grid grid-cols-2 gap-3 mb-3">
             <div>
-              <label class="text-xs text-gray-500">输入</label>
-              <textarea id="tcInput" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
+              <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">输入</label>
+              <textarea id="tcInput" rows="4" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
             </div>
             <div>
-              <label class="text-xs text-gray-500">期望输出</label>
-              <textarea id="tcOutput" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
+              <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">期望输出</label>
+              <textarea id="tcOutput" rows="4" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm text-left focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
             </div>
           </div>
           <div class="grid grid-cols-3 gap-3 mb-3">
             <div>
-              <label class="text-xs text-gray-500">分数</label>
-              <input id="tcScore" type="number" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+              <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">分数</label>
+              <input id="tcScore" type="number" value="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             </div>
             <div>
-              <label class="text-xs text-gray-500">所属分组</label>
-              <select id="tcGroup" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+              <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">所属分组</label>
+              <select id="tcGroup" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                 <option value="">无分组</option>
               </select>
             </div>
             <div class="flex items-end">
               <button onclick="saveTestCase()" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">保存</button>
-              <button onclick="cancelEditTC()" class="ml-2 px-4 py-2 text-gray-600 text-sm hover:bg-gray-100 rounded-lg">取消</button>
+              <button onclick="cancelEditTC()" class="ml-2 px-4 py-2 text-gray-600 dark:text-gray-400 dark:text-gray-500 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">取消</button>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 overflow-hidden">
         <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
+          <thead class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ID</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">标题</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">类型</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">模式</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">测试点</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">公开</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">操作</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">ID</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">标题</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">类型</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">模式</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">测试点</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">公开</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">操作</th>
             </tr>
           </thead>
-          <tbody id="adminProblems" class="divide-y divide-gray-100"></tbody>
+          <tbody id="adminProblems" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
         </table>
       </div>
     </div>
 
     <div id="panel-users" class="hidden">
       <h2 class="text-lg font-semibold mb-4">用户管理</h2>
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 overflow-hidden">
         <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
+          <thead class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ID</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">用户名</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">昵称</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">角色</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Rating</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">榜单</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">状态</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">操作</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">ID</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">用户名</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">昵称</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">角色</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">Rating</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">榜单</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">状态</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">操作</th>
             </tr>
           </thead>
-          <tbody id="adminUsers" class="divide-y divide-gray-100"></tbody>
+          <tbody id="adminUsers" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
         </table>
       </div>
     </div>
@@ -221,7 +221,7 @@
     <div id="panel-online" class="hidden">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold">在线用户</h2>
-        <button onclick="loadOnlineUsers()" class="px-3 py-1.5 text-sm bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200">刷新</button>
+        <button onclick="loadOnlineUsers()" class="px-3 py-1.5 text-sm bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-200">刷新</button>
       </div>
       <div id="onlineList" class="space-y-3"></div>
     </div>
@@ -231,47 +231,47 @@
         <h2 class="text-lg font-semibold">比赛管理</h2>
         <button onclick="showCreateContest()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700">+ 新建比赛</button>
       </div>
-      <div id="createContestForm" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
+      <div id="createContestForm" class="hidden bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6 mb-4">
         <div class="grid grid-cols-2 gap-4 mb-4">
-          <input id="cTitle" placeholder="比赛标题" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
-          <input id="cStart" type="datetime-local" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
-          <input id="cEnd" type="datetime-local" class="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input id="cTitle" placeholder="比赛标题" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input id="cStart" type="datetime-local" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input id="cEnd" type="datetime-local" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
         <div class="flex justify-end space-x-3">
-          <button onclick="hideCreateContest()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl">取消</button>
+          <button onclick="hideCreateContest()" class="px-4 py-2 text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl">取消</button>
           <button onclick="createContest()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700">创建</button>
         </div>
       </div>
 
-      <div id="contestProblemManager" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
+      <div id="contestProblemManager" class="hidden bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6 mb-4">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-semibold" id="contestProblemTitle">管理比赛</h3>
-          <button onclick="hideContestProblemManager()" class="text-sm text-gray-500 hover:text-gray-700">关闭</button>
+          <button onclick="hideContestProblemManager()" class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300">关闭</button>
         </div>
 
         <div class="mb-4">
-          <h4 class="text-sm font-semibold text-gray-700 mb-2">邀请用户</h4>
+          <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">邀请用户</h4>
           <div class="flex space-x-3">
-            <input id="cpUserId" type="number" placeholder="用户 ID" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input id="cpUserId" type="number" placeholder="用户 ID" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             <button onclick="inviteContestUser()" class="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700">邀请</button>
           </div>
         </div>
 
         <div class="mb-4">
-          <h4 class="text-sm font-semibold text-gray-700 mb-2">参赛用户 (<span id="participantCount">0</span>)</h4>
+          <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">参赛用户 (<span id="participantCount">0</span>)</h4>
           <div id="participantList" class="space-y-2 mb-4"></div>
         </div>
 
         <div class="mb-4">
-          <h4 class="text-sm font-semibold text-gray-700 mb-2">添加题目</h4>
+          <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">添加题目</h4>
           <div class="grid grid-cols-3 gap-3">
             <div>
-              <label class="text-xs text-gray-500">题目 ID</label>
-              <input id="cpProblemId" type="number" placeholder="如 1" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+              <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">题目 ID</label>
+              <input id="cpProblemId" type="number" placeholder="如 1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             </div>
             <div>
-              <label class="text-xs text-gray-500">别名（选填）</label>
-              <input id="cpAlias" type="text" placeholder="如 A" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+              <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">别名（选填）</label>
+              <input id="cpAlias" type="text" placeholder="如 A" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             </div>
             <div class="flex items-end">
               <button onclick="addContestProblem()" class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700">添加题目</button>
@@ -280,24 +280,24 @@
         </div>
 
         <div>
-          <h4 class="text-sm font-semibold text-gray-700 mb-2">比赛题目</h4>
+          <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">比赛题目</h4>
           <div id="contestProblemsList" class="space-y-2"></div>
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 overflow-hidden">
         <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
+          <thead class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ID</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">标题</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">题目数</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">开始</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">结束</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">操作</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">ID</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">标题</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">题目数</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">开始</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">结束</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase">操作</th>
             </tr>
           </thead>
-          <tbody id="adminContests" class="divide-y divide-gray-100"></tbody>
+          <tbody id="adminContests" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
         </table>
       </div>
     </div>
@@ -349,18 +349,18 @@
       try {
         const data = await apiCall('GET', '/problems?limit=100');
         document.getElementById('adminProblems').innerHTML = data.problems.map(p => `
-          <tr class="hover:bg-gray-50">
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-700">
             <td class="px-4 py-3 text-sm">${p.id}</td>
             <td class="px-4 py-3 text-sm font-medium">${escapeHtml(p.title)}</td>
             <td class="px-4 py-3 text-center text-sm">${p.problem_type === 'traditional' ? '传统题' : p.problem_type}</td>
             <td class="px-4 py-3 text-center text-sm">${p.subtask_mode === 'advanced' ? '分组' : '简单'}</td>
             <td class="px-4 py-3 text-center text-sm" id="tc-count-${p.id}">-</td>
-            <td class="px-4 py-3 text-center">${p.is_public ? '<span class="text-green-600">是</span>' : '<span class="text-red-600">否</span>'}</td>
+            <td class="px-4 py-3 text-center">${p.is_public ? '<span class="text-green-600 dark:text-green-400">是</span>' : '<span class="text-red-600 dark:text-red-400">否</span>'}</td>
             <td class="px-4 py-3 text-center">
-              <a href="/pages/problem.html?id=${p.id}" class="text-indigo-600 text-sm hover:underline mr-2">查看</a>
-              <button onclick="editProblem(${p.id})" class="text-blue-600 text-sm hover:underline mr-2">编辑</button>
-              <button onclick="openTestManager(${p.id}, '${escapeHtml(p.title)}')" class="text-green-600 text-sm hover:underline mr-2">测试点</button>
-              <button onclick="deleteProblem(${p.id})" class="text-red-600 text-sm hover:underline">删除</button>
+              <a href="/pages/problem.html?id=${p.id}" class="text-indigo-600 dark:text-indigo-400 text-sm hover:underline mr-2">查看</a>
+              <button onclick="editProblem(${p.id})" class="text-blue-600 dark:text-blue-400 text-sm hover:underline mr-2">编辑</button>
+              <button onclick="openTestManager(${p.id}, '${escapeHtml(p.title)}')" class="text-green-600 dark:text-green-400 text-sm hover:underline mr-2">测试点</button>
+              <button onclick="deleteProblem(${p.id})" class="text-red-600 dark:text-red-400 text-sm hover:underline">删除</button>
             </td>
           </tr>
         `).join('');
@@ -491,22 +491,22 @@
     function renderGroups() {
       const el = document.getElementById('groupsList');
       if (currentGroups.length === 0) {
-        el.innerHTML = '<div class="text-sm text-gray-400 py-2">无分组（简单模式）</div>';
+        el.innerHTML = '<div class="text-sm text-gray-400 dark:text-gray-500 py-2">无分组（简单模式）</div>';
         return;
       }
       el.innerHTML = currentGroups.map(g => `
-        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
           <div class="flex items-center space-x-3">
-            <span class="text-sm font-mono text-indigo-600">#${g.id}</span>
+            <span class="text-sm font-mono text-indigo-600 dark:text-indigo-400">#${g.id}</span>
             <span class="text-sm font-medium">${escapeHtml(g.subtask_id)}</span>
-            <span class="text-xs text-gray-500">满分: ${g.score}</span>
-            <span class="text-xs text-gray-500">聚合: ${g.aggregator}</span>
-            ${g.dependency.length > 0 ? `<span class="text-xs text-orange-600">依赖: [${g.dependency.join(', ')}]</span>` : ''}
-            ${g.scoring_script ? '<span class="text-xs text-green-600">有计分脚本</span>' : ''}
+            <span class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">满分: ${g.score}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">聚合: ${g.aggregator}</span>
+            ${g.dependency.length > 0 ? `<span class="text-xs text-orange-600 dark:text-orange-400">依赖: [${g.dependency.join(', ')}]</span>` : ''}
+            ${g.scoring_script ? '<span class="text-xs text-green-600 dark:text-green-400">有计分脚本</span>' : ''}
           </div>
           <div class="flex space-x-2">
-            <button onclick="showGroupEditor(${g.id})" class="text-xs text-indigo-600 hover:underline">编辑</button>
-            <button onclick="deleteGroup(${g.id})" class="text-xs text-red-600 hover:underline">删除</button>
+            <button onclick="showGroupEditor(${g.id})" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">编辑</button>
+            <button onclick="deleteGroup(${g.id})" class="text-xs text-red-600 dark:text-red-400 hover:underline">删除</button>
           </div>
         </div>
       `).join('');
@@ -600,24 +600,24 @@
     function renderTestCases() {
       const el = document.getElementById('testCasesList');
       if (currentTestCases.length === 0) {
-        el.innerHTML = '<div class="text-sm text-gray-400 py-2">暂无测试点</div>';
+        el.innerHTML = '<div class="text-sm text-gray-400 dark:text-gray-500 py-2">暂无测试点</div>';
         return;
       }
       el.innerHTML = currentTestCases.map((tc, i) => {
         const group = currentGroups.find(g => g.id === tc.group_id);
         return `
-          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+          <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
             <div class="flex items-center space-x-3">
-              <span class="text-sm font-mono text-gray-500">#${tc.id}</span>
-              <span class="text-xs text-gray-400">排序: ${tc.sort_order}</span>
-              <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">分数: ${tc.score}</span>
-              ${group ? `<span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">分组: ${group.subtask_id}</span>` : '<span class="text-xs text-gray-400">无分组</span>'}
-              <span class="text-xs text-gray-400 max-w-[200px] truncate">输入: ${escapeHtml(tc.input_data || tc.input_file || '(空)').slice(0, 30)}</span>
-              <span class="text-xs text-gray-400 max-w-[200px] truncate">输出: ${escapeHtml(tc.output_data || tc.output_file || '(空)').slice(0, 30)}</span>
+              <span class="text-sm font-mono text-gray-500 dark:text-gray-400 dark:text-gray-500">#${tc.id}</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">排序: ${tc.sort_order}</span>
+              <span class="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded">分数: ${tc.score}</span>
+              ${group ? `<span class="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">分组: ${group.subtask_id}</span>` : '<span class="text-xs text-gray-400 dark:text-gray-500">无分组</span>'}
+              <span class="text-xs text-gray-400 dark:text-gray-500 max-w-[200px] truncate">输入: ${escapeHtml(tc.input_data || tc.input_file || '(空)').slice(0, 30)}</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500 max-w-[200px] truncate">输出: ${escapeHtml(tc.output_data || tc.output_file || '(空)').slice(0, 30)}</span>
             </div>
             <div class="flex space-x-2">
-              <button onclick="editTestCase(${tc.id})" class="text-xs text-indigo-600 hover:underline">编辑</button>
-              <button onclick="deleteSingleTC(${tc.id})" class="text-xs text-red-600 hover:underline">删除</button>
+              <button onclick="editTestCase(${tc.id})" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">编辑</button>
+              <button onclick="deleteSingleTC(${tc.id})" class="text-xs text-red-600 dark:text-red-400 hover:underline">删除</button>
             </div>
           </div>
         `;
@@ -728,13 +728,13 @@
           const targetLevel = hierarchy.indexOf(u.role);
           const canOperate = u.id !== currentUser.id && myLevel > targetLevel;
           return `
-          <tr class="hover:bg-gray-50">
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-700">
             <td class="px-4 py-3 text-sm">${u.id}</td>
             <td class="px-4 py-3 text-sm font-medium">${escapeHtml(u.username)}</td>
             <td class="px-4 py-3 text-sm">${escapeHtml(u.nickname)}</td>
             <td class="px-4 py-3 text-center">
               ${isSu && u.id !== currentUser.id ? `
-                <select onchange="changeRole(${u.id}, this.value)" class="px-2 py-1 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                <select onchange="changeRole(${u.id}, this.value)" class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
                   <option value="user" ${u.role==='user'?'selected':''}>用户</option>
                   <option value="teacher" ${u.role==='teacher'?'selected':''}>教师</option>
                   <option value="admin" ${u.role==='admin'?'selected':''}>管理员</option>
@@ -743,21 +743,21 @@
               ` : roleBadge(u.role)}
             </td>
             <td class="px-4 py-3 text-center text-sm">${u.rating || 1500}</td>
-            <td class="px-4 py-3 text-center">${u.banned ? '<span class="text-red-600 text-sm">已封禁</span>' : '<span class="text-green-600 text-sm">正常</span>'}</td>
+            <td class="px-4 py-3 text-center">${u.banned ? '<span class="text-red-600 dark:text-red-400 text-sm">已封禁</span>' : '<span class="text-green-600 dark:text-green-400 text-sm">正常</span>'}</td>
             <td class="px-4 py-3 text-center">
               ${isSu || (currentUser.role === 'admin' && hierarchy.indexOf(u.role) < myLevel) ? `
-                <button onclick="toggleHideRating(${u.id}, ${u.hide_rating ? 0 : 1})" class="text-xs px-2 py-1 rounded ${u.hide_rating ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'} hover:opacity-80">
+                <button onclick="toggleHideRating(${u.id}, ${u.hide_rating ? 0 : 1})" class="text-xs px-2 py-1 rounded ${u.hide_rating ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : 'bg-gray-100 text-gray-600 dark:text-gray-400 dark:text-gray-500'} hover:opacity-80">
                   ${u.hide_rating ? '已隐藏' : '显示'}
                 </button>
-              ` : (u.hide_rating ? '<span class="text-xs text-yellow-600">已隐藏</span>' : '<span class="text-xs text-gray-400">显示</span>')}
+              ` : (u.hide_rating ? '<span class="text-xs text-yellow-600 dark:text-yellow-400">已隐藏</span>' : '<span class="text-xs text-gray-400 dark:text-gray-500">显示</span>')}
             </td>
             <td class="px-4 py-3 text-center space-x-1">
-              ${isSu ? `<button onclick="setRating(${u.id})" class="text-yellow-600 text-xs hover:underline">Rating</button>` : ''}
-              ${canOperate ? (u.banned ? `<button onclick="unbanUser(${u.id})" class="text-green-600 text-xs hover:underline">解封</button>` : `<button onclick="banUser(${u.id})" class="text-red-600 text-xs hover:underline">封禁</button>`) : ''}
-              ${canOperate ? `<button onclick="forceLogout(${u.id})" class="text-orange-600 text-xs hover:underline">登出</button>` : ''}
-              ${isSu ? `<button onclick="resetPassword(${u.id})" class="text-blue-600 text-xs hover:underline">重置密码</button>` : ''}
-              ${isSu && u.id !== currentUser.id ? `<button onclick="sudoLogin(${u.id}, '${escapeHtml(u.username)}')" class="text-purple-600 text-xs hover:underline">免密</button>` : ''}
-              ${isSu && u.id !== currentUser.id ? `<button onclick="deleteUser(${u.id})" class="text-red-600 text-xs hover:underline">删除</button>` : ''}
+              ${isSu ? `<button onclick="setRating(${u.id})" class="text-yellow-600 dark:text-yellow-400 text-xs hover:underline">Rating</button>` : ''}
+              ${canOperate ? (u.banned ? `<button onclick="unbanUser(${u.id})" class="text-green-600 dark:text-green-400 text-xs hover:underline">解封</button>` : `<button onclick="banUser(${u.id})" class="text-red-600 dark:text-red-400 text-xs hover:underline">封禁</button>`) : ''}
+              ${canOperate ? `<button onclick="forceLogout(${u.id})" class="text-orange-600 dark:text-orange-400 text-xs hover:underline">登出</button>` : ''}
+              ${isSu ? `<button onclick="resetPassword(${u.id})" class="text-blue-600 dark:text-blue-400 text-xs hover:underline">重置密码</button>` : ''}
+              ${isSu && u.id !== currentUser.id ? `<button onclick="sudoLogin(${u.id}, '${escapeHtml(u.username)}')" class="text-purple-600 dark:text-purple-400 text-xs hover:underline">免密</button>` : ''}
+              ${isSu && u.id !== currentUser.id ? `<button onclick="deleteUser(${u.id})" class="text-red-600 dark:text-red-400 text-xs hover:underline">删除</button>` : ''}
             </td>
           </tr>
         `}).join('');
@@ -794,16 +794,16 @@
       try {
         const data = await apiCall('GET', '/articles?limit=100');
         const el = document.getElementById('adminArticles');
-        if (data.articles.length === 0) { el.innerHTML = '<div class="text-gray-400 py-4 text-center">暂无文章</div>'; return; }
+        if (data.articles.length === 0) { el.innerHTML = '<div class="text-gray-400 dark:text-gray-500 py-4 text-center">暂无文章</div>'; return; }
         el.innerHTML = data.articles.map(a => `
-          <div class="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+          <div class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700">
             <div>
-              <a href="/pages/article.html?id=${a.id}" class="font-medium text-gray-900 hover:text-indigo-600">${escapeHtml(a.title)}</a>
-              <div class="text-sm text-gray-500 mt-1">${escapeHtml(a.nickname || a.username)} · ${new Date(a.created_at).toLocaleString()} ${a.is_published ? '' : '<span class="text-yellow-600">未发布</span>'}</div>
+              <a href="/pages/article.html?id=${a.id}" class="font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:text-indigo-400">${escapeHtml(a.title)}</a>
+              <div class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">${escapeHtml(a.nickname || a.username)} · ${new Date(a.created_at).toLocaleString()} ${a.is_published ? '' : '<span class="text-yellow-600 dark:text-yellow-400">未发布</span>'}</div>
             </div>
             <div class="flex space-x-2">
-              <a href="/pages/article-edit.html?id=${a.id}" class="text-indigo-600 text-sm hover:underline">编辑</a>
-              <button onclick="deleteArticle(${a.id})" class="text-red-600 text-sm hover:underline">删除</button>
+              <a href="/pages/article-edit.html?id=${a.id}" class="text-indigo-600 dark:text-indigo-400 text-sm hover:underline">编辑</a>
+              <button onclick="deleteArticle(${a.id})" class="text-red-600 dark:text-red-400 text-sm hover:underline">删除</button>
             </div>
           </div>
         `).join('');
@@ -819,16 +819,16 @@
       try {
         const data = await apiCall('GET', '/uploads?limit=100');
         const el = document.getElementById('adminFiles');
-        if (!data.files || data.files.length === 0) { el.innerHTML = '<div class="text-gray-400 py-4 text-center">暂无文件</div>'; return; }
+        if (!data.files || data.files.length === 0) { el.innerHTML = '<div class="text-gray-400 dark:text-gray-500 py-4 text-center">暂无文件</div>'; return; }
         el.innerHTML = data.files.map(f => `
-          <div class="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+          <div class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700">
             <div class="flex items-center space-x-3">
-              <span class="text-sm text-gray-500">#${f.id}</span>
-              <a href="/uploads/${f.filename}" target="_blank" class="text-indigo-600 text-sm hover:underline">${escapeHtml(f.original_name)}</a>
-              <span class="text-xs text-gray-400">${(f.size/1024).toFixed(1)}KB · ${escapeHtml(f.username || '匿名')}</span>
-              <span class="text-xs text-gray-400">${new Date(f.created_at).toLocaleString()}</span>
+              <span class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">#${f.id}</span>
+              <a href="/uploads/${f.filename}" target="_blank" class="text-indigo-600 dark:text-indigo-400 text-sm hover:underline">${escapeHtml(f.original_name)}</a>
+              <span class="text-xs text-gray-400 dark:text-gray-500">${(f.size/1024).toFixed(1)}KB · ${escapeHtml(f.username || '匿名')}</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">${new Date(f.created_at).toLocaleString()}</span>
             </div>
-            <button onclick="deleteFile(${f.id}, '${f.filename}')" class="text-red-600 text-sm hover:underline">删除</button>
+            <button onclick="deleteFile(${f.id}, '${f.filename}')" class="text-red-600 dark:text-red-400 text-sm hover:underline">删除</button>
           </div>
         `).join('');
       } catch (err) { console.error(err); }
@@ -844,21 +844,21 @@
         const data = await apiCall('GET', '/users/online');
         const el = document.getElementById('onlineList');
         if (data.users.length === 0) {
-          el.innerHTML = '<div class="text-center py-8 text-gray-400">暂无在线用户</div>';
+          el.innerHTML = '<div class="text-center py-8 text-gray-400 dark:text-gray-500">暂无在线用户</div>';
           return;
         }
         el.innerHTML = data.users.map(u => `
-          <div class="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+          <div class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700">
             <div class="flex items-center space-x-4">
-              <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <div class="w-3 h-3 bg-green-50 dark:bg-green-900/300 rounded-full animate-pulse"></div>
               </div>
               <div>
-                <div class="font-medium text-gray-900">${escapeHtml(u.nickname || u.username)}</div>
-                <div class="text-sm text-gray-500">@${escapeHtml(u.username)} · ${roleBadge(u.role)}</div>
+                <div class="font-medium text-gray-900 dark:text-white">${escapeHtml(u.nickname || u.username)}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">@${escapeHtml(u.username)} · ${roleBadge(u.role)}</div>
               </div>
             </div>
-            <div class="text-sm text-gray-400">最后活跃: ${new Date(u.lastActive).toLocaleTimeString()}</div>
+            <div class="text-sm text-gray-400 dark:text-gray-500">最后活跃: ${new Date(u.lastActive).toLocaleTimeString()}</div>
           </div>
         `).join('');
       } catch (err) { console.error(err); }
@@ -889,15 +889,15 @@
       try {
         const data = await apiCall('GET', '/contests?limit=100');
         document.getElementById('adminContests').innerHTML = data.contests.map(c => `
-          <tr class="hover:bg-gray-50">
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-700">
             <td class="px-4 py-3 text-sm">${c.id}</td>
             <td class="px-4 py-3 text-sm font-medium">${escapeHtml(c.title)}</td>
             <td class="px-4 py-3 text-center text-sm">${c.problem_count || 0}</td>
             <td class="px-4 py-3 text-center text-sm">${new Date(c.start_time).toLocaleString()}</td>
             <td class="px-4 py-3 text-center text-sm">${new Date(c.end_time).toLocaleString()}</td>
             <td class="px-4 py-3 text-center">
-              <button onclick="showContestProblemManager(${c.id}, '${escapeHtml(c.title)}')" class="text-green-600 text-sm hover:underline mr-2">管理题目</button>
-              <button onclick="deleteContest(${c.id})" class="text-red-600 text-sm hover:underline">删除</button>
+              <button onclick="showContestProblemManager(${c.id}, '${escapeHtml(c.title)}')" class="text-green-600 dark:text-green-400 text-sm hover:underline mr-2">管理题目</button>
+              <button onclick="deleteContest(${c.id})" class="text-red-600 dark:text-red-400 text-sm hover:underline">删除</button>
             </td>
           </tr>
         `).join('');
@@ -939,18 +939,18 @@
         document.getElementById('participantCount').textContent = data.total;
         const el = document.getElementById('participantList');
         if (data.participants.length === 0) {
-          el.innerHTML = '<div class="text-sm text-gray-400 py-1">暂无参赛用户</div>';
+          el.innerHTML = '<div class="text-sm text-gray-400 dark:text-gray-500 py-1">暂无参赛用户</div>';
           return;
         }
         el.innerHTML = data.participants.map(p => `
-          <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+          <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div class="flex items-center space-x-3">
-              <span class="text-sm font-mono text-gray-500">#${p.user_id}</span>
+              <span class="text-sm font-mono text-gray-500 dark:text-gray-400 dark:text-gray-500">#${p.user_id}</span>
               <span class="text-sm font-medium">${escapeHtml(p.nickname || p.username)}</span>
               ${roleBadge(p.role)}
-              ${p.invited_by_name ? `<span class="text-xs text-gray-400">被 ${escapeHtml(p.invited_by_name)} 邀请</span>` : '<span class="text-xs text-gray-400">自行加入</span>'}
+              ${p.invited_by_name ? `<span class="text-xs text-gray-400 dark:text-gray-500">被 ${escapeHtml(p.invited_by_name)} 邀请</span>` : '<span class="text-xs text-gray-400 dark:text-gray-500">自行加入</span>'}
             </div>
-            <button onclick="removeContestParticipant(${p.user_id})" class="text-xs text-red-600 hover:underline">移除</button>
+            <button onclick="removeContestParticipant(${p.user_id})" class="text-xs text-red-600 dark:text-red-400 hover:underline">移除</button>
           </div>
         `).join('');
       } catch (err) { console.error(err); }
@@ -979,19 +979,19 @@
         const data = await apiCall('GET', `/contests/${currentContestId}`);
         const el = document.getElementById('contestProblemsList');
         if (!data.problems || data.problems.length === 0) {
-          el.innerHTML = '<div class="text-sm text-gray-400 py-2">暂无题目</div>';
+          el.innerHTML = '<div class="text-sm text-gray-400 dark:text-gray-500 py-2">暂无题目</div>';
           return;
         }
         el.innerHTML = data.problems.map(p => `
-          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+          <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
             <div class="flex items-center space-x-3">
-              <span class="text-sm font-mono text-indigo-600">#${p.id}</span>
+              <span class="text-sm font-mono text-indigo-600 dark:text-indigo-400">#${p.id}</span>
               <span class="text-sm font-medium">${escapeHtml(p.title)}</span>
-              ${p.alias ? `<span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">别名: ${escapeHtml(p.alias)}</span>` : ''}
-              ${p.is_public === 0 ? '<span class="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded">非公开</span>' : ''}
-              <span class="text-xs text-gray-400">排序: ${p.sort_order}</span>
+              ${p.alias ? `<span class="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">别名: ${escapeHtml(p.alias)}</span>` : ''}
+              ${p.is_public === 0 ? '<span class="text-xs px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded">非公开</span>' : ''}
+              <span class="text-xs text-gray-400 dark:text-gray-500">排序: ${p.sort_order}</span>
             </div>
-            <button onclick="removeContestProblem(${p.id})" class="text-xs text-red-600 hover:underline">移除</button>
+            <button onclick="removeContestProblem(${p.id})" class="text-xs text-red-600 dark:text-red-400 hover:underline">移除</button>
           </div>
         `).join('');
       } catch (err) { console.error(err); }
