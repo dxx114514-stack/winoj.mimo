@@ -106,10 +106,8 @@ router.post('/', requireAuth, rateLimit, async (req, res) => {
 
   const newId = db.findNextId('submissions');
   db.prepare('INSERT INTO submissions (id, user_id, problem_id, language, source_code, answer_data, status) VALUES (?, ?, ?, ?, ?, ?, ?)').run(
-    newId, req.user.id, problem_id, language, source_code || '', answer_data || '', 'pending'
+    newId, req.user.id, problem_id, language, source_code || '', answer_data || '', 'pending_review'
   );
-
-  enqueueSubmission(newId);
 
   res.status(201).json({
     submission_id: newId,
@@ -123,8 +121,18 @@ router.post('/', requireAuth, rateLimit, async (req, res) => {
         db.prepare('UPDATE users SET banned = 1, updated_at = datetime(\'now\') WHERE id = ?').run(req.user.id);
         db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(req.user.id);
         db.prepare("UPDATE submissions SET status = 'system_error' WHERE id = ?").run(newId);
+      } else {
+        db.prepare("UPDATE submissions SET status = 'pending' WHERE id = ?").run(newId);
+        enqueueSubmission(newId);
       }
-    }).catch(e => console.error('Async security review error:', e.message));
+    }).catch(e => {
+      console.error('Async security review error:', e.message);
+      db.prepare("UPDATE submissions SET status = 'pending' WHERE id = ?").run(newId);
+      enqueueSubmission(newId);
+    });
+  } else {
+    db.prepare("UPDATE submissions SET status = 'pending' WHERE id = ?").run(newId);
+    enqueueSubmission(newId);
   }
 });
 

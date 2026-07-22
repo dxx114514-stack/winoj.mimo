@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS submissions (
   language TEXT NOT NULL,
   source_code TEXT DEFAULT '',
   answer_data TEXT DEFAULT '',
-  status TEXT DEFAULT 'pending' CHECK(status IN ('pending','running','compiling','judging','accepted','wrong_answer','time_limit_exceeded','memory_limit_exceeded','runtime_error','compile_error','system_error','pending_rejudge')),
+  status TEXT DEFAULT 'pending' CHECK(status IN ('pending','running','compiling','judging','accepted','wrong_answer','time_limit_exceeded','memory_limit_exceeded','runtime_error','compile_error','system_error','pending_rejudge','pending_review')),
   score REAL DEFAULT 0,
   time_used INTEGER DEFAULT 0,
   memory_used INTEGER DEFAULT 0,
