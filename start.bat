@@ -35,14 +35,19 @@ if not exist "backend\node_modules" (
 
 where ollama >nul 2>&1
 if %errorlevel% equ 0 (
-    tasklist /fi "imagename eq ollama.exe" 2>nul | findstr /i "ollama.exe" >nul 2>&1
-    if %errorlevel% neq 0 (
+    curl -s http://localhost:11434/api/tags >nul 2>&1
+    if %errorlevel% equ 0 (
+        echo [OK] Ollama is running
+    ) else (
         echo [..] Starting Ollama...
         start "" ollama serve
-        timeout /t 3 /nobreak >nul
-        echo [OK] Ollama started
-    ) else (
-        echo [OK] Ollama is running
+        timeout /t 5 /nobreak >nul
+        curl -s http://localhost:11434/api/tags >nul 2>&1
+        if %errorlevel% equ 0 (
+            echo [OK] Ollama started
+        ) else (
+            echo [!!] Ollama failed to start - AI code review disabled
+        )
     )
 ) else (
     echo [!!] Ollama not found - AI code review disabled
