@@ -217,10 +217,40 @@ const rules = [
     if (m.includes('dark:bg-red-900')) return m;
     return m.replace(/bg-red-50/g, 'bg-red-50 dark:bg-red-900/30');
   }],
-  // input bg handling for all inputs
+  // input bg handling for all inputs - add bg and text dark classes
   [/(class="[^"]*?)border border-gray-300 rounded/g, (m) => {
-    if (m.includes('dark:border-gray-600')) return m;
-    return m.replace(/border border-gray-300/g, 'border border-gray-300 dark:border-gray-600');
+    if (m.includes('dark:border-gray-600') && m.includes('dark:bg-gray-800')) return m;
+    let result = m.replace(/border border-gray-300/g, 'border border-gray-300 dark:border-gray-600');
+    if (!result.includes('dark:bg-gray-800')) result = result.replace(/rounded/, 'rounded dark:bg-gray-800 dark:text-white');
+    return result;
+  }],
+  // select elements
+  [/(class="[^"]*?)border border-gray-300 rounded-xl/g, (m) => {
+    if (m.includes('dark:bg-gray-800')) return m;
+    return m.replace(/border border-gray-300 rounded-xl/, 'border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-800 dark:text-white');
+  }],
+  // textarea with border-gray-300
+  [/(class="[^"]*?)border border-gray-300 rounded-xl font-mono/g, (m) => {
+    if (m.includes('dark:bg-gray-800')) return m;
+    return m.replace(/border border-gray-300 rounded-xl font-mono/, 'border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-800 dark:text-white font-mono');
+  }],
+  // input[type="text"] and password - no bg class but has border
+  [/<input([^>]*?)class="([^"]*?)border border-gray-300([^"]*?)"([^>]*?)>/g, (m, pre, cls1, cls2, post) => {
+    const full = cls1 + 'border border-gray-300' + cls2;
+    if (full.includes('dark:bg-gray-800')) return m;
+    return `<input${pre}class="${cls1}border border-gray-300 dark:border-gray-600${cls2} dark:bg-gray-800 dark:text-white"${post}>`;
+  }],
+  // textarea without bg
+  [/<textarea([^>]*?)class="([^"]*?)border border-gray-300([^"]*?)"([^>]*?)>/g, (m, pre, cls1, cls2, post) => {
+    const full = cls1 + 'border border-gray-300' + cls2;
+    if (full.includes('dark:bg-gray-800')) return m;
+    return `<textarea${pre}class="${cls1}border border-gray-300 dark:border-gray-600${cls2} dark:bg-gray-800 dark:text-white"${post}>`;
+  }],
+  // select without bg
+  [/<select([^>]*?)class="([^"]*?)border border-gray-300([^"]*?)"([^>]*?)>/g, (m, pre, cls1, cls2, post) => {
+    const full = cls1 + 'border border-gray-300' + cls2;
+    if (full.includes('dark:bg-gray-800')) return m;
+    return `<select${pre}class="${cls1}border border-gray-300 dark:border-gray-600${cls2} dark:bg-gray-800 dark:text-white"${post}>`;
   }],
 ];
 

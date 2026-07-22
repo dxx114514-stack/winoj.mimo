@@ -19,7 +19,7 @@
       <div class="flex space-x-2" id="articleActions"></div>
     </div>
     <div id="articleList" class="space-y-4"></div>
-    <div id="empty" class="hidden text-center py-12 text-gray-400 dark:text-gray-500">暂无文章</div>
+    <div id="empty" class="hidden text-center py-12 text-gray-400 dark:text-gray-500 dark:text-gray-400">暂无文章</div>
   </div>
   <script>
     document.getElementById('nav').innerHTML = renderNav('');
@@ -38,7 +38,7 @@
         if (data.articles.length === 0) { el.innerHTML = ''; empty.classList.remove('hidden'); return; }
         empty.classList.add('hidden');
         el.innerHTML = data.articles.map(a => `
-          <a href="/pages/article.html?id=${a.id}" class="block bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md transition">
+          <a href="/pages/article.html?id=${a.id}" class="block bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md transition">
             <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">${escapeHtml(a.title)}</h2>
             <div class="flex items-center space-x-3 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
               <span>${escapeHtml(a.nickname || a.username)}</span>

@@ -83,6 +83,7 @@ async function initDB() {
   if (!cols.includes('provider')) sqlDb.exec("ALTER TABLE users ADD COLUMN provider TEXT DEFAULT ''");
   if (!cols.includes('rating')) sqlDb.exec("ALTER TABLE users ADD COLUMN rating INTEGER DEFAULT 1500");
   if (!cols.includes('hide_rating')) sqlDb.exec("ALTER TABLE users ADD COLUMN hide_rating INTEGER DEFAULT 0");
+  if (!cols.includes('preferred_language')) sqlDb.exec("ALTER TABLE users ADD COLUMN preferred_language TEXT DEFAULT ''");
 
   const probColsResult = sqlDb.exec("PRAGMA table_info(problems)");
   const probCols = probColsResult.length > 0 ? probColsResult[0].values.map(r => r[1]) : [];

@@ -12,7 +12,7 @@
   <div id="nav"></div>
   <div class="max-w-5xl mx-auto px-4 py-8">
     <div id="contestList" class="space-y-4"></div>
-    <div id="empty" class="hidden text-center py-12 text-gray-400 dark:text-gray-500">暂无比赛</div>
+    <div id="empty" class="hidden text-center py-12 text-gray-400 dark:text-gray-500 dark:text-gray-400">暂无比赛</div>
   </div>
   <script>
     document.getElementById('nav').innerHTML = renderNav('contests');
@@ -31,7 +31,7 @@
           if (now >= start && now <= end) { status = '进行中'; statusColor = 'bg-green-50 text-green-700'; }
           else if (now > end) { status = '已结束'; statusColor = 'bg-gray-100 text-gray-600'; }
           return `
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md transition">
+            <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md transition">
               <div class="flex items-start justify-between">
                 <div>
                   <h2 class="text-xl font-bold text-gray-900 dark:text-white">${escapeHtml(c.title)}</h2>

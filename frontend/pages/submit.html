@@ -20,14 +20,14 @@
   <div class="max-w-4xl mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">提交代码</h1>
     <div id="error" class="hidden mb-4 p-4 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-xl text-sm"></div>
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6">
+    <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6">
       <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">题目</label>
         <div id="problemInfo" class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-300">加载中...</div>
       </div>
       <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">语言</label>
-        <select id="language" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" onchange="changeLang()">
+        <select id="language" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none dark:bg-gray-800 dark:text-white" onchange="changeLang()">
         </select>
       </div>
       <div class="mb-4">
@@ -56,6 +56,10 @@
         const langs = await apiCall('GET', '/ide/languages');
         const sel = document.getElementById('language');
         sel.innerHTML = langs.map(l => `<option value="${l.name}">${l.display_name} (${l.extension})</option>`).join('');
+        const user = getUser();
+        if (user && user.preferred_language) {
+          sel.value = user.preferred_language;
+        }
       } catch {}
       if (pid) {
         try {
@@ -80,10 +84,17 @@
       const errDiv = document.getElementById('error');
       btn.disabled = true; btn.textContent = '提交中...';
       errDiv.classList.add('hidden');
+      const selectedLang = document.getElementById('language').value;
       try {
+        const user = getUser();
+        if (user && user.preferred_language !== selectedLang) {
+          user.preferred_language = selectedLang;
+          setUser(user);
+          apiCall('PUT', '/users/me', { preferred_language: selectedLang }).catch(() => {});
+        }
         const data = await apiCall('POST', '/submissions', {
           problem_id: parseInt(pid) || 0,
-          language: document.getElementById('language').value,
+          language: selectedLang,
           source_code: editor.getValue()
         });
         window.location.href = `/pages/submission.html?id=${data.submission_id}`;

@@ -62,7 +62,7 @@ async function refreshUser() {
   try {
     const u = await apiCall('GET', '/users/me');
     const current = getUser() || {};
-    setUser({ id: u.id, username: u.username, nickname: u.nickname, role: u.role, rating: u.rating });
+    setUser({ id: u.id, username: u.username, nickname: u.nickname, role: u.role, rating: u.rating, preferred_language: u.preferred_language || '' });
     return u;
   } catch { return null; }
 }

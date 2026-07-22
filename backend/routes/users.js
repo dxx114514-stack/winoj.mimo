@@ -26,25 +26,26 @@ router.get('/rating', (req, res) => {
 });
 
 router.get('/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, rating, created_at FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, rating, preferred_language, created_at FROM users WHERE id = ?').get(req.user.id);
   res.json(user);
 });
 
 router.put('/me', requireAuth, (req, res) => {
-  const { nickname, signature, bio, hide_rating } = req.body;
+  const { nickname, signature, bio, hide_rating, preferred_language } = req.body;
   const updates = [];
   const values = [];
   if (nickname !== undefined) { updates.push('nickname = ?'); values.push(nickname); }
   if (signature !== undefined) { updates.push('signature = ?'); values.push(signature.slice(0, 1000)); }
   if (bio !== undefined) { updates.push('bio = ?'); values.push(bio); }
   if (hide_rating !== undefined) { updates.push('hide_rating = ?'); values.push(hide_rating ? 1 : 0); }
+  if (preferred_language !== undefined) { updates.push('preferred_language = ?'); values.push(preferred_language); }
   if (updates.length === 0) {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'No fields to update.' });
   }
   updates.push("updated_at = datetime('now')");
   values.push(req.user.id);
   db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...values);
-  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, rating, hide_rating FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, rating, hide_rating, preferred_language FROM users WHERE id = ?').get(req.user.id);
   res.json(user);
 });
 

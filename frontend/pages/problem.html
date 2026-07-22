@@ -14,7 +14,7 @@
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
   <div id="nav"></div>
   <div class="max-w-4xl mx-auto px-4 py-8">
-    <div id="content" class="text-center py-12 text-gray-400 dark:text-gray-500">加载中...</div>
+    <div id="content" class="text-center py-12 text-gray-400 dark:text-gray-500 dark:text-gray-400">加载中...</div>
   </div>
   <script>
     document.getElementById('nav').innerHTML = renderNav('problems');
@@ -34,7 +34,7 @@
         } catch {}
 
         document.getElementById('content').innerHTML = `
-          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-8">
+          <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-8">
             <div class="flex items-start justify-between mb-6">
               <div>
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white">${escapeHtml(p.title)}</h1>
@@ -66,7 +66,7 @@
           const sols = await apiCall('GET', `/problems/${pid}/solutions`);
           if (sols.length > 0) {
             const solHtml = sols.map(s => `
-              <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6 mt-4">
+              <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6 mt-4">
                 <div class="flex items-center justify-between mb-3">
                   <h3 class="text-lg font-semibold text-gray-900 dark:text-white">📝 题解: ${escapeHtml(s.article_title || '未命名')}</h3>
                   <a href="/pages/article.html?id=${s.article_id}" class="text-indigo-600 dark:text-indigo-400 text-sm hover:underline">查看完整文章</a>
