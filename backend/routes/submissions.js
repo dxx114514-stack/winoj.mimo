@@ -104,26 +104,6 @@ router.post('/', requireAuth, rateLimit, async (req, res) => {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: `Language '${language}' is not available.` });
   }
 
-  let securityResult = { safe: true };
-  if (source_code && source_code.length >= 50) {
-    try {
-      securityResult = await reviewCode(source_code, language);
-    } catch (e) {
-      console.error('Security review failed:', e.message);
-    }
-  }
-
-  if (!securityResult.safe) {
-    db.prepare('UPDATE users SET banned = 1, updated_at = datetime(\'now\') WHERE id = ?').run(req.user.id);
-    db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(req.user.id);
-    return res.status(403).json({
-      code: 6,
-      reason: 'ERR_FORBIDDEN',
-      message: `代码安全审查未通过: ${securityResult.reason}。账户已被封禁。`,
-      threat_level: securityResult.threat_level
-    });
-  }
-
   const newId = db.findNextId('submissions');
   db.prepare('INSERT INTO submissions (id, user_id, problem_id, language, source_code, answer_data, status) VALUES (?, ?, ?, ?, ?, ?, ?)').run(
     newId, req.user.id, problem_id, language, source_code || '', answer_data || '', 'pending'
@@ -135,6 +115,17 @@ router.post('/', requireAuth, rateLimit, async (req, res) => {
     submission_id: newId,
     message: 'Submission received and queued for judging.'
   });
+
+  if (source_code && source_code.length >= 50) {
+    reviewCode(source_code, language).then(result => {
+      if (!result.safe) {
+        console.log(`[Security] Malicious code detected in submission #${newId} by user #${req.user.id}: ${result.reason}`);
+        db.prepare('UPDATE users SET banned = 1, updated_at = datetime(\'now\') WHERE id = ?').run(req.user.id);
+        db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(req.user.id);
+        db.prepare("UPDATE submissions SET status = 'system_error' WHERE id = ?").run(newId);
+      }
+    }).catch(e => console.error('Async security review error:', e.message));
+  }
 });
 
 router.get('/:id/detail', requireAuth, (req, res) => {
