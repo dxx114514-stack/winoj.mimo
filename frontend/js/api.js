@@ -134,7 +134,6 @@ function statusColor(status) {
     running: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
     judging: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
     compiling: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
-    pending_review: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
   };
   return colors[status] || 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700';
 }
@@ -153,7 +152,6 @@ function statusText(status) {
     judging: '评测中',
     compiling: '编译中',
     pending_rejudge: '等待重测',
-    pending_review: '审查中',
   };
   return texts[status] || status;
 }
