@@ -49,6 +49,11 @@
   </div>
   <script>
     document.getElementById('nav').innerHTML = renderNav('');
+    const user = getUser();
+    if (!user || !['teacher', 'admin', 'su'].includes(user.role)) {
+      window.location.href = '/pages/index.html';
+      throw new Error('Access denied');
+    }
     const dropZone = document.getElementById('dropZone');
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-indigo-400', 'bg-indigo-50'); });
     dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('border-indigo-400', 'bg-indigo-50'); });

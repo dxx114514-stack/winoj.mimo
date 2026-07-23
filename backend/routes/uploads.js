@@ -32,7 +32,7 @@ const upload = multer({
   }
 });
 
-router.get('/', requireAuth, (req, res) => {
+router.get('/', requireAuth, requireRole('teacher'), (req, res) => {
   const { page = 1, limit = 50 } = req.query;
   const offset = (parseInt(page) - 1) * parseInt(limit);
   let where = '';
@@ -50,7 +50,7 @@ router.get('/', requireAuth, (req, res) => {
   res.json({ total, page: parseInt(page), limit: parseInt(limit), files });
 });
 
-router.post('/', requireAuth, upload.single('file'), (req, res) => {
+router.post('/', requireAuth, requireRole('teacher'), upload.single('file'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'No file uploaded.' });
   }
