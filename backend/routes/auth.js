@@ -88,13 +88,20 @@ router.post('/refresh', (req, res) => {
   }
   try {
     const payload = jwt.verify(refreshToken, config.jwt.refreshSecret);
-    const user = db.prepare('SELECT id, banned FROM users WHERE id = ?').get(payload.userId);
+    const user = db.prepare('SELECT id, banned, force_logout_at FROM users WHERE id = ?').get(payload.userId);
     if (!user) {
       return res.status(401).json({ code: 5, reason: 'ERR_UNAUTHORIZED', message: 'User not found.' });
     }
     if (user.banned) {
       db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(payload.userId);
       return res.status(403).json({ code: 6, reason: 'ERR_FORBIDDEN', message: 'Account has been banned.' });
+    }
+    if (user.force_logout_at && payload.iat) {
+      const forceTime = Math.floor(new Date(user.force_logout_at + 'Z').getTime() / 1000);
+      if (payload.iat < forceTime) {
+        db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(payload.userId);
+        return res.status(401).json({ code: 5, reason: 'ERR_UNAUTHORIZED', message: 'You have been logged out.' });
+      }
     }
     const tokens = db.prepare('SELECT * FROM refresh_tokens WHERE user_id = ? AND expires_at > datetime(\'now\')').all(payload.userId);
     let validToken = null;
