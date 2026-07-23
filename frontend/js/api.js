@@ -67,6 +67,21 @@ async function refreshUser() {
   } catch { return null; }
 }
 
+async function refreshRating() {
+  try {
+    const u = await apiCall('GET', '/users/me');
+    if (u) {
+      const current = getUser() || {};
+      current.rating = u.rating;
+      setUser(current);
+      const el = document.getElementById('nav-rating');
+      if (el) el.textContent = `R:${u.rating || 1500}`;
+    }
+  } catch {}
+}
+
+setInterval(() => { if (getToken()) refreshRating(); }, 30000);
+
 async function apiCall(method, path, body = null) {
   const headers = { 'Content-Type': 'application/json' };
   const token = getToken();
@@ -206,7 +221,7 @@ function renderNav(activePage) {
             ${user ? `
               <div class="flex items-center space-x-3">
                 <span class="text-sm text-gray-700 dark:text-gray-300">${escapeHtml(user.nickname || user.username || '')}</span>
-                <span class="px-1.5 py-0.5 text-xs rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">R:${user.rating || 1500}</span>
+                <span id="nav-rating" class="px-1.5 py-0.5 text-xs rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">R:${user.rating || 1500}</span>
                 ${roleBadge(user.role)}
                 <a href="/pages/profile.html" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">资料</a>
                 <button onclick="showPasswordModal()" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">设置</button>
