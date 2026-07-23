@@ -93,6 +93,37 @@ async function initDB() {
   const artCols = artColsResult.length > 0 ? artColsResult[0].values.map(r => r[1]) : [];
   if (!artCols.includes('provider')) sqlDb.exec("ALTER TABLE articles ADD COLUMN provider TEXT DEFAULT ''");
 
+  const subCheck = sqlDb.exec("SELECT sql FROM sqlite_master WHERE type='table' AND name='submissions'");
+  if (subCheck.length > 0 && subCheck[0].values.length > 0) {
+    const createSql = subCheck[0].values[0][0];
+    if (!createSql.includes('pending_review')) {
+      sqlDb.exec("ALTER TABLE submissions RENAME TO submissions_old");
+      sqlDb.exec(`CREATE TABLE submissions (
+        id INTEGER PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        problem_id INTEGER NOT NULL,
+        language TEXT NOT NULL,
+        source_code TEXT DEFAULT '',
+        answer_data TEXT DEFAULT '',
+        status TEXT DEFAULT 'pending' CHECK(status IN ('pending','running','compiling','judging','accepted','wrong_answer','time_limit_exceeded','memory_limit_exceeded','runtime_error','compile_error','system_error','pending_rejudge','pending_review')),
+        score REAL DEFAULT 0,
+        time_used INTEGER DEFAULT 0,
+        memory_used INTEGER DEFAULT 0,
+        compile_output TEXT DEFAULT '',
+        JudgerDetail TEXT DEFAULT '{}',
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
+      )`);
+      sqlDb.exec("INSERT INTO submissions SELECT * FROM submissions_old");
+      sqlDb.exec("DROP TABLE submissions_old");
+      sqlDb.exec("CREATE INDEX IF NOT EXISTS idx_submissions_user ON submissions(user_id)");
+      sqlDb.exec("CREATE INDEX IF NOT EXISTS idx_submissions_problem ON submissions(problem_id)");
+      sqlDb.exec("CREATE INDEX IF NOT EXISTS idx_submissions_status ON submissions(status)");
+      console.log('[DB] submissions table CHECK constraint updated with pending_review');
+    }
+  }
+
   const tagsTableExists = sqlDb.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='tags'");
   if (tagsTableExists.length === 0 || tagsTableExists[0].values.length === 0) {
     sqlDb.exec(`CREATE TABLE IF NOT EXISTS tags (
