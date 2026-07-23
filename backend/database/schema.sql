@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   rating INTEGER DEFAULT 1500,
   hide_rating INTEGER DEFAULT 0,
   preferred_language TEXT DEFAULT '',
+  force_logout_at TEXT DEFAULT '',
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );

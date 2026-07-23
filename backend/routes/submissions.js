@@ -119,6 +119,7 @@ router.post('/', requireAuth, rateLimit, async (req, res) => {
       if (!result.safe) {
         console.log(`[Security] Malicious code detected in submission #${newId} by user #${req.user.id}: ${result.reason}`);
         db.prepare('UPDATE users SET banned = 1, updated_at = datetime(\'now\') WHERE id = ?').run(req.user.id);
+        db.prepare("UPDATE users SET force_logout_at = datetime('now') WHERE id = ?").run(req.user.id);
         db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(req.user.id);
         db.prepare("UPDATE submissions SET status = 'system_error' WHERE id = ?").run(newId);
       } else {

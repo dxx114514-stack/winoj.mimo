@@ -135,6 +135,7 @@ router.post('/:id/ban', requireAuth, requireRole('admin'), (req, res) => {
     return res.status(403).json({ code: 6, reason: 'ERR_FORBIDDEN', message: 'Cannot ban a user with equal or higher privileges.' });
   }
   db.prepare('UPDATE users SET banned = 1, updated_at = datetime(\'now\') WHERE id = ?').run(target.id);
+  db.prepare("UPDATE users SET force_logout_at = datetime('now') WHERE id = ?").run(target.id);
   db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(target.id);
   removeOnlineUser(target.id);
   res.json({ message: 'User banned and logged out.' });
@@ -159,6 +160,7 @@ router.post('/:id/force-logout', requireAuth, requireRole('admin'), (req, res) =
     return res.status(403).json({ code: 6, reason: 'ERR_FORBIDDEN', message: 'Cannot force logout a user with equal or higher privileges.' });
   }
   db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(target.id);
+  db.prepare("UPDATE users SET force_logout_at = datetime('now') WHERE id = ?").run(target.id);
   removeOnlineUser(target.id);
   res.json({ message: 'User forced to logout.' });
 });

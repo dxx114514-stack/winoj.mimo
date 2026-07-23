@@ -12,12 +12,18 @@ function requireAuth(req, res, next) {
   const token = authHeader.slice(7);
   try {
     const payload = jwt.verify(token, config.jwt.accessSecret);
-    const user = db.prepare('SELECT id, username, nickname, role, banned FROM users WHERE id = ?').get(payload.userId);
+    const user = db.prepare('SELECT id, username, nickname, role, banned, force_logout_at FROM users WHERE id = ?').get(payload.userId);
     if (!user) {
       return res.status(401).json({ code: 5, reason: 'ERR_UNAUTHORIZED', message: 'User not found.' });
     }
     if (user.banned) {
       return res.status(403).json({ code: 6, reason: 'ERR_FORBIDDEN', message: 'Account has been banned.' });
+    }
+    if (user.force_logout_at && payload.iat) {
+      const forceTime = Math.floor(new Date(user.force_logout_at).getTime() / 1000);
+      if (payload.iat < forceTime) {
+        return res.status(401).json({ code: 5, reason: 'ERR_UNAUTHORIZED', message: 'You have been logged out.' });
+      }
     }
     req.user = user;
     onlineUsers.set(user.id, { username: user.username, nickname: user.nickname, role: user.role, lastActive: Date.now() });
