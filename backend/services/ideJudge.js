@@ -12,7 +12,7 @@ async function processIdeQueue() {
     await executeIdeRun(runId);
   } catch (err) {
     console.error(`IDE run error for #${runId}:`, err);
-    db.prepare("UPDATE ide_runs SET status = 'system_error', stderr = ? WHERE id = ?").run(err.message, runId);
+    db.prepare("UPDATE ide_runs SET status = 'system_error', stderr = ? WHERE id = ?").run(String(err.message || err || 'Unknown error'), runId);
   }
   isRunning = false;
   if (ideQueue.length > 0) {
@@ -59,7 +59,7 @@ async function executeIdeRun(runId) {
     );
   } catch (err) {
     if (workDir) cleanupWorkDir(workDir);
-    db.prepare("UPDATE ide_runs SET status = 'system_error', stderr = ? WHERE id = ?").run(err.message, runId);
+    db.prepare("UPDATE ide_runs SET status = 'system_error', stderr = ? WHERE id = ?").run(String(err.message || err || 'Unknown error'), runId);
   }
 }
 

@@ -71,7 +71,7 @@ function compile(workDir, srcFile, exeFile, lang, isWindows) {
     });
     return { success: true, output: output.toString() };
   } catch (err) {
-    return { success: false, output: (err.stderr || err.stdout || err.message).toString() };
+    return { success: false, output: String(err.stderr || err.stdout || err.message || 'Compilation failed') };
   }
 }
 
@@ -170,7 +170,7 @@ function runCode(workDir, srcFile, exeFile, lang, stdin, timeLimitMs, memoryLimi
       clearTimeout(timer);
       resolve({
         stdout,
-        stderr: stderr + '\n' + err.message,
+        stderr: stderr + '\n' + (err.message || 'Process error'),
         exitCode: -1,
         timeUsed: Date.now() - startTime,
         memoryUsed: peakMemoryKB,
