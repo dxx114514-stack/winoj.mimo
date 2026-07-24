@@ -36,7 +36,7 @@ router.post('/review', optionalAuth, async (req, res) => {
 });
 
 router.post('/run', optionalAuth, rateLimit, async (req, res) => {
-  const { language, source_code, stdin, skip_review } = req.body;
+  const { language, source_code, stdin } = req.body;
 
   if (!language || !source_code) {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'language and source_code are required.' });
@@ -56,7 +56,7 @@ router.post('/run', optionalAuth, rateLimit, async (req, res) => {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: `Language configuration not found for '${language}'.` });
   }
 
-  if (!skip_review && source_code.length >= 50) {
+  if (source_code.length >= 50) {
     const securityReview = await reviewCode(source_code, language);
     if (!securityReview.safe) {
       if (req.user) {
