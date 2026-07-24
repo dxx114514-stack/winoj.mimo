@@ -5,8 +5,10 @@ const { v4: uuidv4 } = require('uuid');
 const db = require('../database/db');
 const config = require('../config/config');
 const { requireAuth } = require('../middleware/auth');
+const { createRateLimit } = require('../middleware/ratelimit');
 
 const router = express.Router();
+const registerRateLimit = createRateLimit({ windowMs: 3600000, max: 1 });
 
 function generateAccessToken(userId) {
   return jwt.sign({ userId }, config.jwt.accessSecret, { expiresIn: config.jwt.accessExpiry });
@@ -48,7 +50,7 @@ router.post('/login', (req, res) => {
   });
 });
 
-router.post('/register', (req, res) => {
+router.post('/register', registerRateLimit, (req, res) => {
   const { username, password, nickname } = req.body;
   if (!username || !password) {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'Username and password are required.' });
