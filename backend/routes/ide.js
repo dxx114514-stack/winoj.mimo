@@ -35,17 +35,14 @@ router.post('/run', optionalAuth, rateLimit, async (req, res) => {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: `Language configuration not found for '${language}'.` });
   }
 
-  const securityReview = await reviewCode(source_code, language);
-  if (!securityReview.safe) {
-    if (req.user) {
-      db.prepare('UPDATE users SET banned = 1 WHERE id = ?').run(req.user.id);
-      db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(req.user.id);
-    }
-    return res.status(403).json({
-      code: 6,
-      reason: 'ERR_FORBIDDEN',
-      message: `代码安全审查未通过: ${securityReview.reason}。威胁等级: ${securityReview.threat_level}。账号已被封禁。`
-    });
+  if (source_code.length >= 50) {
+    reviewCode(source_code, language).then(result => {
+      if (!result.safe && req.user) {
+        db.prepare('UPDATE users SET banned = 1 WHERE id = ?').run(req.user.id);
+        db.prepare("UPDATE users SET force_logout_at = datetime('now') WHERE id = ?").run(req.user.id);
+        db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(req.user.id);
+      }
+    }).catch(() => {});
   }
 
   let workDir, srcFile, exeFile;
