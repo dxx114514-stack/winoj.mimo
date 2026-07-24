@@ -129,6 +129,7 @@ async function initDB() {
   const ideCols = ideColsResult.length > 0 ? ideColsResult[0].values.map(r => r[1]) : [];
   if (!ideCols.includes('status')) sqlDb.exec("ALTER TABLE ide_runs ADD COLUMN status TEXT DEFAULT 'pending'");
   if (!ideCols.includes('compile_output')) sqlDb.exec("ALTER TABLE ide_runs ADD COLUMN compile_output TEXT DEFAULT ''");
+  if (!ideCols.includes('memory_used')) sqlDb.exec("ALTER TABLE ide_runs ADD COLUMN memory_used INTEGER DEFAULT 0");
 
   const tagsTableExists = sqlDb.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='tags'");
   if (tagsTableExists.length === 0 || tagsTableExists[0].values.length === 0) {

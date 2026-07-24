@@ -44,9 +44,10 @@
       <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">输出</h3>
-          <div id="runInfo" class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 hidden">
+          <div id="runInfo" class="text-sm text-gray-500 dark:text-gray-400 hidden">
             <span id="exitCode"></span>
             <span id="timeInfo" class="ml-3"></span>
+            <span id="memInfo" class="ml-3"></span>
           </div>
         </div>
         <div id="output" class="bg-gray-900 text-green-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap">点击 "运行" 执行代码...</div>
@@ -122,6 +123,7 @@
             document.getElementById('runInfo').classList.remove('hidden');
             document.getElementById('exitCode').textContent = `退出码: ${data.exit_code}`;
             document.getElementById('timeInfo').textContent = `耗时: ${data.time_used}ms`;
+            document.getElementById('memInfo').textContent = `内存: ${data.memory_used || 0}KB`;
             break;
           }
           const label = statusTexts[data.status] || data.status;

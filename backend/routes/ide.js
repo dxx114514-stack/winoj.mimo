@@ -85,6 +85,7 @@ router.get('/run/:id', optionalAuth, (req, res) => {
     compile_output: run.compile_output,
     exit_code: run.exit_code,
     time_used: run.time_used,
+    memory_used: run.memory_used || 0,
     language: run.language,
     created_at: run.created_at
   });

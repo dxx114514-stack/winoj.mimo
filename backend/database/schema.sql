@@ -167,6 +167,7 @@ CREATE TABLE IF NOT EXISTS ide_runs (
   time_used INTEGER DEFAULT 0,
   status TEXT DEFAULT 'pending' CHECK(status IN ('pending','pending_review','running','compiling','accepted','wrong_answer','runtime_error','compile_error','system_error')),
   compile_output TEXT DEFAULT '',
+  memory_used INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now'))
 );
 

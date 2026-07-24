@@ -54,8 +54,8 @@ async function executeIdeRun(runId) {
     cleanupWorkDir(workDir);
 
     const finalStatus = result.exitCode === 0 ? 'accepted' : 'runtime_error';
-    db.prepare("UPDATE ide_runs SET status = ?, stdout = ?, stderr = ?, exit_code = ?, time_used = ? WHERE id = ?").run(
-      finalStatus, result.stdout, result.stderr, result.exitCode, result.timeUsed, runId
+    db.prepare("UPDATE ide_runs SET status = ?, stdout = ?, stderr = ?, exit_code = ?, time_used = ?, memory_used = ? WHERE id = ?").run(
+      finalStatus, result.stdout, result.stderr, result.exitCode, result.timeUsed, result.memoryUsed || 0, runId
     );
   } catch (err) {
     if (workDir) cleanupWorkDir(workDir);
