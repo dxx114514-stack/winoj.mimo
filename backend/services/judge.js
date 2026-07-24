@@ -183,7 +183,7 @@ function evaluateSimple(problem, tcResults) {
     for (const tc of tcResults) {
       totalScore += tc.score;
       maxTime = Math.max(maxTime, tc.timeUsed);
-      maxMemory = Math.max(maxMem, tc.memoryUsed);
+      maxMem = Math.max(maxMem, tc.memoryUsed);
       if (tc.status !== 'accepted') allPassed = false;
     }
     return {
