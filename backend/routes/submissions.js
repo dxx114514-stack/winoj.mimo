@@ -81,7 +81,7 @@ router.post('/', requireAuth, rateLimit, async (req, res) => {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'language is required.' });
   }
 
-  if (req.user.role !== 'su') {
+  if (req.user.role !== 'su' && !req.user.submit_lock_exempt) {
     const pending = db.prepare("SELECT id FROM submissions WHERE user_id = ? AND status IN ('pending_review','pending','running','compiling','judging') LIMIT 1").get(req.user.id);
     if (pending) {
       return res.status(429).json({ code: 4, reason: 'ERR_SUBMIT_LIMIT_EXCEEDED', message: '您有尚未完成的提交，请等待评测完成后再提交。' });

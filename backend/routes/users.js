@@ -26,7 +26,7 @@ router.get('/rating', (req, res) => {
 });
 
 router.get('/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, rating, preferred_language, created_at FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, username, nickname, role, signature, bio, rating, preferred_language, submit_lock_exempt, created_at FROM users WHERE id = ?').get(req.user.id);
   res.json(user);
 });
 
@@ -76,6 +76,16 @@ router.put('/:id/hide-rating', requireAuth, requireRole('admin'), (req, res) => 
   }
   db.prepare('UPDATE users SET hide_rating = ?, updated_at = datetime(\'now\') WHERE id = ?').run(hide_rating ? 1 : 0, req.params.id);
   res.json({ message: 'Hide rating updated.', hide_rating: hide_rating ? 1 : 0 });
+});
+
+router.put('/:id/submit-lock-exempt', requireAuth, requireRole('su'), (req, res) => {
+  const { submit_lock_exempt } = req.body;
+  const target = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!target) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'User not found.' });
+  }
+  db.prepare("UPDATE users SET submit_lock_exempt = ?, updated_at = datetime('now') WHERE id = ?").run(submit_lock_exempt ? 1 : 0, req.params.id);
+  res.json({ message: 'Submit lock exempt updated.', submit_lock_exempt: submit_lock_exempt ? 1 : 0 });
 });
 
 router.get('/', requireAuth, requireRole('admin'), (req, res) => {

@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
   hide_rating INTEGER DEFAULT 0,
   preferred_language TEXT DEFAULT '',
   force_logout_at TEXT DEFAULT '',
+  submit_lock_exempt INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );

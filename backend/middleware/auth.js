@@ -12,7 +12,7 @@ function requireAuth(req, res, next) {
   const token = authHeader.slice(7);
   try {
     const payload = jwt.verify(token, config.jwt.accessSecret);
-    const user = db.prepare('SELECT id, username, nickname, role, banned, force_logout_at FROM users WHERE id = ?').get(payload.userId);
+    const user = db.prepare('SELECT id, username, nickname, role, banned, force_logout_at, submit_lock_exempt FROM users WHERE id = ?').get(payload.userId);
     if (!user) {
       return res.status(401).json({ code: 5, reason: 'ERR_UNAUTHORIZED', message: 'User not found.' });
     }

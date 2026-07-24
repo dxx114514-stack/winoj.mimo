@@ -759,6 +759,7 @@
               ${isSu ? `<button onclick="resetPassword(${u.id})" class="text-blue-600 dark:text-blue-400 text-xs hover:underline">重置密码</button>` : ''}
               ${isSu && u.id !== currentUser.id ? `<button onclick="sudoLogin(${u.id}, '${escapeHtml(u.username)}')" class="text-purple-600 dark:text-purple-400 text-xs hover:underline">免密</button>` : ''}
               ${isSu && u.id !== currentUser.id ? `<button onclick="deleteUser(${u.id})" class="text-red-600 dark:text-red-400 text-xs hover:underline">删除</button>` : ''}
+              ${isSu && u.id !== currentUser.id ? `<button onclick="toggleSubmitExempt(${u.id}, ${u.submit_lock_exempt ? 0 : 1})" class="text-xs hover:underline ${u.submit_lock_exempt ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}">${u.submit_lock_exempt ? '已豁免' : '豁免'}</button>` : ''}
             </td>
           </tr>
         `}).join('');
@@ -866,6 +867,9 @@
     }
 
     async function banUser(id) { try { await apiCall('POST', `/users/${id}/ban`); loadUsers(); } catch (err) { alert(err.message); } }
+    async function toggleSubmitExempt(id, val) {
+      try { await apiCall('PUT', `/users/${id}/submit-lock-exempt`, { submit_lock_exempt: val }); loadUsers(); } catch (err) { alert(err.message); }
+    }
     async function unbanUser(id) {
       if (!confirm('确定解封此用户？')) return;
       try { await apiCall('POST', `/users/${id}/unban`); loadUsers(); } catch (err) { alert(err.message); }
