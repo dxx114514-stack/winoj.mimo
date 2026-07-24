@@ -12,17 +12,16 @@ for (const file of files) {
   let content = fs.readFileSync(filePath, 'utf8');
   
   if (content.includes('favicon.svg')) {
+    console.log(`Skip (already has): ${file}`);
     continue;
   }
   
-  content = content.replace(
-    /(<title>[^<]+<\/title>\n)/,
-    `$1${faviconTag}\n`
-  );
+  // Add after <head> tag
+  content = content.replace(/<head>/, `<head>\n${faviconTag}`);
   
   fs.writeFileSync(filePath, content, 'utf8');
   updated++;
-  console.log(`Added favicon: ${file}`);
+  console.log(`Added: ${file}`);
 }
 
-console.log(`\nDone! Added favicon to ${updated} pages.`);
+console.log(`\nDone! ${updated} pages updated.`);
