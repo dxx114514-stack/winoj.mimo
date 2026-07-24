@@ -43,3 +43,5 @@ input[type="text"], input:not([type]) { text-align: left !important; }
 .dark pre { background-color: #1f2937 !important; color: #e5e7eb !important; }
 .dark code { background-color: #374151 !important; color: #f87171 !important; }
 .dark input, .dark textarea, .dark select { background-color: #374151 !important; color: #f9fafb !important; border-color: #4b5563 !important; }
+.dark select option { background-color: #374151 !important; color: #f9fafb !important; }
+.dark select option:hover { background-color: #4b5563 !important; }
