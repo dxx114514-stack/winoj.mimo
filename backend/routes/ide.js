@@ -2,9 +2,9 @@ const express = require('express');
 const db = require('../database/db');
 const { optionalAuth } = require('../middleware/auth');
 const { createRateLimit } = require('../middleware/ratelimit');
-const { prepareWorkDir, compile, runCode, cleanupWorkDir, loadLanguageConfig } = require('../sandbox/executor');
 const config = require('../config/config');
 const { reviewCode, CODE_LENGTH_LIMIT } = require('../services/security');
+const { enqueueIdeRun } = require('../services/ideJudge');
 
 const router = express.Router();
 const rateLimit = createRateLimit(config.rateLimit.ideRun);
@@ -16,10 +16,7 @@ router.get('/languages', (req, res) => {
 
 router.post('/review', optionalAuth, async (req, res) => {
   const { language, source_code } = req.body;
-  if (!language || !source_code) {
-    return res.json({ safe: true });
-  }
-  if (source_code.length < 50) {
+  if (!language || !source_code || source_code.length < 50) {
     return res.json({ safe: true });
   }
   try {
@@ -50,12 +47,6 @@ router.post('/run', optionalAuth, rateLimit, async (req, res) => {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: `Language '${language}' is not available.` });
   }
 
-  const langConfig = loadLanguageConfig();
-  const lang = langConfig[language];
-  if (!lang) {
-    return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: `Language configuration not found for '${language}'.` });
-  }
-
   if (source_code.length >= 50) {
     const securityReview = await reviewCode(source_code, language);
     if (!securityReview.safe) {
@@ -72,51 +63,31 @@ router.post('/run', optionalAuth, rateLimit, async (req, res) => {
     }
   }
 
-  let workDir, srcFile, exeFile;
-  try {
-    const prepared = prepareWorkDir(language, source_code);
-    workDir = prepared.workDir;
-    srcFile = prepared.srcFile;
-    exeFile = prepared.exeFile;
+  const newId = db.prepare('INSERT INTO ide_runs (user_id, language, source_code, stdin, status) VALUES (?, ?, ?, ?, ?)').run(
+    req.user ? req.user.id : null, language, source_code, stdin || '', 'pending'
+  ).lastInsertRowid;
 
-    const compileResult = compile(workDir, srcFile, exeFile, lang, prepared.isWindows);
-    if (!compileResult.success) {
-      cleanupWorkDir(workDir);
-      if (req.user) {
-        db.prepare('INSERT INTO ide_runs (user_id, language, source_code, stdin, stderr, exit_code) VALUES (?, ?, ?, ?, ?, ?)').run(
-          req.user.id, language, source_code, stdin || '', compileResult.output, -1
-        );
-      }
-      return res.json({
-        stdout: '',
-        stderr: compileResult.output,
-        exit_code: -1,
-        time_used: 0,
-        compile_error: true
-      });
-    }
+  enqueueIdeRun(newId);
 
-    const timeLimitMs = 10000;
-    const result = await runCode(workDir, srcFile, exeFile, lang, stdin || '', timeLimitMs, 256, prepared.isWindows);
-    cleanupWorkDir(workDir);
+  res.status(201).json({ run_id: newId, status: 'pending' });
+});
 
-    if (req.user) {
-      db.prepare('INSERT INTO ide_runs (user_id, language, source_code, stdin, stdout, stderr, exit_code, time_used) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(
-        req.user.id, language, source_code, stdin || '', result.stdout, result.stderr, result.exitCode, result.timeUsed
-      );
-    }
-
-    res.json({
-      stdout: result.stdout,
-      stderr: result.stderr,
-      exit_code: result.exitCode,
-      time_used: result.timeUsed,
-      compile_error: false
-    });
-  } catch (err) {
-    if (workDir) cleanupWorkDir(workDir);
-    res.status(500).json({ code: 2, reason: 'ERR_INVALID_STATE', message: `Execution error: ${err.message}` });
+router.get('/run/:id', optionalAuth, (req, res) => {
+  const run = db.prepare('SELECT * FROM ide_runs WHERE id = ?').get(req.params.id);
+  if (!run) {
+    return res.status(404).json({ code: 3, reason: 'ERR_NOT_FOUND', message: 'Run not found.' });
   }
+  res.json({
+    id: run.id,
+    status: run.status,
+    stdout: run.stdout,
+    stderr: run.stderr,
+    compile_output: run.compile_output,
+    exit_code: run.exit_code,
+    time_used: run.time_used,
+    language: run.language,
+    created_at: run.created_at
+  });
 });
 
 module.exports = router;

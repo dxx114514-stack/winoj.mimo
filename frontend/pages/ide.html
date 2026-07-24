@@ -95,24 +95,40 @@
           btn.disabled = false; btn.innerHTML = '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>运行</span>';
           return;
         }
+        const createRes = await apiCall('POST', '/ide/run', { language, source_code, stdin });
+        const runId = createRes.run_id;
         btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg><span>编译中...</span>';
         output.textContent = '编译中...';
-        const data = await apiCall('POST', '/ide/run', { language, source_code, stdin });
-        let out = '';
-        if (data.compile_error) {
-          out = `编译错误:\n${data.stderr}`;
-          output.className = 'bg-gray-900 text-red-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
-        } else {
-          if (data.stdout) out += data.stdout;
-          if (data.stderr) out += (out ? '\n' : '') + `标准错误:\n${data.stderr}`;
-          if (data.exit_code !== 0) out += (out ? '\n' : '') + `退出码: ${data.exit_code}`;
-          if (!out) out = '程序执行成功（无输出）';
-          output.className = data.exit_code === 0 ? 'bg-gray-900 text-green-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap' : 'bg-gray-900 text-yellow-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
+        const statusTexts = { pending: '等待中...', pending_review: '审查中...', compiling: '编译中...', running: '运行中...' };
+        let attempts = 0;
+        while (attempts < 100) {
+          await new Promise(r => setTimeout(r, 500));
+          const data = await apiCall('GET', `/ide/run/${runId}`);
+          if (data.status !== 'pending' && data.status !== 'pending_review' && data.status !== 'compiling' && data.status !== 'running') {
+            let out = '';
+            if (data.status === 'compile_error') {
+              out = `编译错误:\n${data.compile_output || data.stderr}`;
+              output.className = 'bg-gray-900 text-red-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
+            } else if (data.status === 'accepted') {
+              out = data.stdout || '程序执行成功（无输出）';
+              if (data.stderr) out += (out ? '\n' : '') + `标准错误:\n${data.stderr}`;
+              output.className = data.exit_code === 0 ? 'bg-gray-900 text-green-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap' : 'bg-gray-900 text-yellow-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
+            } else {
+              out = data.stderr || '运行出错';
+              if (data.exit_code !== undefined && data.exit_code !== -1) out += `\n退出码: ${data.exit_code}`;
+              output.className = 'bg-gray-900 text-red-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
+            }
+            output.textContent = out;
+            document.getElementById('runInfo').classList.remove('hidden');
+            document.getElementById('exitCode').textContent = `退出码: ${data.exit_code}`;
+            document.getElementById('timeInfo').textContent = `耗时: ${data.time_used}ms`;
+            break;
+          }
+          const label = statusTexts[data.status] || data.status;
+          btn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg><span>${label}</span>`;
+          output.textContent = label;
+          attempts++;
         }
-        output.textContent = out;
-        document.getElementById('runInfo').classList.remove('hidden');
-        document.getElementById('exitCode').textContent = `退出码: ${data.exit_code}`;
-        document.getElementById('timeInfo').textContent = `耗时: ${data.time_used}ms`;
       } catch (err) {
         output.textContent = `错误: ${err.message || '运行失败'}`;
         output.className = 'bg-gray-900 text-red-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
