@@ -5,6 +5,7 @@ function renderMarkdown(text) {
       .replace(/\$\$\n?([\s\S]*?)\n?\$\$/g, (_, m) => `<div class="katex-display my-4 text-center">\\[${m.trim()}\\]</div>`)
       .replace(/\$(.+?)\$/g, (_, m) => `\\(${m}\\)`)
       .replace(/@\[bilibili\]\((BV[a-zA-Z0-9]+)\)/g, '<div class="my-4"><iframe src="https://player.bilibili.com/player.html?bvid=$1&autoplay=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" class="w-full aspect-video rounded-lg"></iframe></div>')
+      .replace(/@\[url\]\(([^)]+)\)/g, '<div class="my-4"><iframe src="$1" class="w-full min-h-[500px] rounded-lg border border-gray-200 dark:border-gray-700"></iframe></div>')
       .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold text-gray-900 mt-4 mb-2">$1</h3>')
       .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-gray-900 mt-6 mb-3">$1</h2>')
       .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-gray-900 mt-6 mb-3">$1</h1>')
