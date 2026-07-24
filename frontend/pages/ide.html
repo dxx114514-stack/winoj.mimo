@@ -13,7 +13,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
   <script src="/js/api.js"></script>
   <style>
-    .CodeMirror { height: 350px; border-radius: 0.75rem; font-size: 14px; text-align: left; }
+    .CodeMirror { height: 500px; border-radius: 0.75rem; font-size: 14px; text-align: left; }
     .CodeMirror-code { text-align: left !important; }
   </style>
 </head>
@@ -26,7 +26,7 @@
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center space-x-3">
             <label class="text-sm font-medium text-gray-700 dark:text-gray-300">语言:</label>
-            <select id="language" class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none dark:bg-gray-800 dark:text-white" onchange="changeLang()">
+            <select id="language" class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none dark:text-white" onchange="changeLang()">
             </select>
           </div>
           <button onclick="runCode()" id="runBtn" class="px-6 py-2 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition flex items-center space-x-2">
@@ -37,7 +37,7 @@
         <textarea id="codeEditor"></textarea>
         <div class="mt-4">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">标准输入 (stdin)</label>
-          <textarea id="stdinInput" rows="4" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded-xl font-mono text-sm text-left focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none dark:bg-gray-800 dark:text-white" placeholder="在此输入测试数据..."></textarea>
+          <textarea id="stdinInput" rows="6" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl font-mono text-sm text-left focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none dark:bg-gray-800 dark:text-white" placeholder="在此输入测试数据..."></textarea>
         </div>
       </div>
       <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 p-6">
@@ -53,10 +53,10 @@
     </div>
   </div>
   <script>
+    if (!getToken()) { window.location.href = '/pages/login.html'; }
     document.getElementById('nav').innerHTML = renderNav('ide');
     let editor;
     const langModes = { c: 'text/x-csrc', cpp: 'text/x-c++src', python3: 'text/x-python', java: 'text/x-java', javascript: 'text/javascript' };
-    if (!getToken()) { window.location.href = '/pages/login.html'; return; }
     async function init() {
       editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
         lineNumbers: true, mode: 'text/x-csrc', theme: 'default', indentUnit: 4, tabSize: 4
