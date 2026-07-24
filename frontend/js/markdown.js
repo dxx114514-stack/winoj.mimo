@@ -7,6 +7,7 @@ function renderMarkdown(text) {
       .replace(/@\[bilibili\]\((BV[a-zA-Z0-9]+)\)/g, '<div class="my-4"><iframe src="https://player.bilibili.com/player.html?bvid=$1&autoplay=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" class="w-full aspect-video rounded-lg"></iframe></div>')
       .replace(/@\[url\]\(([^)]+)\)/g, '<div class="my-4"><iframe src="$1" class="w-full min-h-[500px] rounded-lg border border-gray-200 dark:border-gray-700"></iframe></div>')
       .replace(/@\[audio\]\(([^)]+)\)/g, '<div class="my-3"><audio controls class="w-full" src="$1"></audio></div>')
+      .replace(/@\[video\]\(([^)]+)\)/g, '<div class="my-4"><video controls class="w-full rounded-lg" src="$1"></video></div>')
       .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold text-gray-900 mt-4 mb-2">$1</h3>')
       .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-gray-900 mt-6 mb-3">$1</h2>')
       .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-gray-900 mt-6 mb-3">$1</h1>')
