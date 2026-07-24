@@ -14,8 +14,29 @@ router.get('/languages', (req, res) => {
   res.json(languages);
 });
 
+router.post('/review', optionalAuth, async (req, res) => {
+  const { language, source_code } = req.body;
+  if (!language || !source_code) {
+    return res.json({ safe: true });
+  }
+  if (source_code.length < 50) {
+    return res.json({ safe: true });
+  }
+  try {
+    const result = await reviewCode(source_code, language);
+    if (!result.safe && req.user) {
+      db.prepare('UPDATE users SET banned = 1 WHERE id = ?').run(req.user.id);
+      db.prepare("UPDATE users SET force_logout_at = datetime('now') WHERE id = ?").run(req.user.id);
+      db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(req.user.id);
+    }
+    res.json(result);
+  } catch (e) {
+    res.json({ safe: true });
+  }
+});
+
 router.post('/run', optionalAuth, rateLimit, async (req, res) => {
-  const { language, source_code, stdin } = req.body;
+  const { language, source_code, stdin, skip_review } = req.body;
 
   if (!language || !source_code) {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: 'language and source_code are required.' });
@@ -35,7 +56,7 @@ router.post('/run', optionalAuth, rateLimit, async (req, res) => {
     return res.status(400).json({ code: 1, reason: 'ERR_INVALID_ARGUMENT', message: `Language configuration not found for '${language}'.` });
   }
 
-  if (source_code.length >= 50) {
+  if (!skip_review && source_code.length >= 50) {
     const securityReview = await reviewCode(source_code, language);
     if (!securityReview.safe) {
       if (req.user) {

@@ -84,12 +84,20 @@
       output.className = 'bg-gray-900 text-gray-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
       output.textContent = '代码安全审查中...';
       document.getElementById('runInfo').classList.add('hidden');
+      const language = document.getElementById('language').value;
+      const source_code = editor.getValue();
+      const stdin = document.getElementById('stdinInput').value;
       try {
-        const data = await apiCall('POST', '/ide/run', {
-          language: document.getElementById('language').value,
-          source_code: editor.getValue(),
-          stdin: document.getElementById('stdinInput').value
-        });
+        const reviewRes = await apiCall('POST', '/ide/review', { language, source_code });
+        if (!reviewRes.safe) {
+          output.textContent = `安全审查未通过: ${reviewRes.reason}`;
+          output.className = 'bg-gray-900 text-red-400 p-4 rounded-xl font-mono text-sm min-h-[430px] overflow-auto whitespace-pre-wrap';
+          btn.disabled = false; btn.innerHTML = '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>运行</span>';
+          return;
+        }
+        btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg><span>编译中...</span>';
+        output.textContent = '编译中...';
+        const data = await apiCall('POST', '/ide/run', { language, source_code, stdin, skip_review: true });
         let out = '';
         if (data.compile_error) {
           out = `编译错误:\n${data.stderr}`;
